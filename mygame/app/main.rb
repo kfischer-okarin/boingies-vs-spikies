@@ -30,6 +30,7 @@ def process_inputs(args)
   mouse = args.inputs.mouse
   camera = args.state.camera
   mouse_camera_movement(mouse, camera)
+  mouse_camera_zoom(mouse, camera)
 end
 
 def mouse_camera_movement(mouse, camera)
@@ -48,6 +49,13 @@ def mouse_camera_movement(mouse, camera)
   elsif mouse.y >= 720 - camera_move_area
     camera[:center_y] += camera_move_speed
   end
+end
+
+def mouse_camera_zoom(mouse, camera)
+  return unless mouse.wheel
+
+  camera[:zoom] += mouse.wheel.y * 0.1 * camera[:zoom]
+  camera[:zoom] = camera[:zoom].clamp(0.25, 4)
 end
 
 def update(args)
