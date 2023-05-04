@@ -12,7 +12,8 @@ end
 def setup(args)
   args.state.walls = stage_walls
   args.state.enemies = []
-  args.state.camera = Camera.build center_x: 640, center_y: 360
+  args.state.camera = Camera.build
+  args.state.player_area = { x: -100, y: -100, w: 200, h: 200 }
 end
 
 def process_inputs(args)
@@ -68,17 +69,26 @@ def move_enemies(args)
 end
 
 def handle_dead_enemies(args)
-  args.state.enemies.reject! { |enemy| enemy_dead?(enemy) }
+  args.state.enemies.reject! { |enemy| enemy_dead?(args, enemy) }
 end
 
-def enemy_dead?(enemy)
-  # for now die when you reach the left side of the screen
-  enemy[:x] < 100
+def enemy_dead?(args, enemy)
+  # for now die when enemy touches player area
+  enemy.intersect_rect? args.state.player_area
 end
 
 def render(args)
+  render_player_area(args)
   render_walls(args)
   render_enemies(args)
+end
+
+def render_player_area(args)
+  camera = args.state.camera
+  args.outputs.primitives << Camera.transform!(
+    camera,
+    args.state.player_area.to_sprite(path: :pixel, r: 0, g: 200, b: 0)
+  )
 end
 
 def render_walls(args)
