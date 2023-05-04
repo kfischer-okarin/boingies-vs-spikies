@@ -55,8 +55,8 @@ end
 
 def spawn_spikey(args)
   args.state.enemies << {
-    x: 1200,
-    y: 10 + rand(600),
+    x: x, y: y, w: 100, h: 100,
+    anchor_x: 0.5, anchor_y: 0.5,
     type: :spikey_ball
   }
 end
@@ -92,8 +92,7 @@ def render_enemies(args)
   camera = args.state.camera
   args.outputs.primitives << args.state.enemies.map { |enemy|
     Camera.transform! camera, enemy.to_sprite(
-      path: "sprites/#{enemy[:type]}.png", w: 100, h: 100,
-      anchor_x: 0.5, anchor_y: 0.5
+      path: "sprites/#{enemy[:type]}.png"
     )
   }
 end
