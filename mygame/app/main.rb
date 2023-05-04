@@ -37,7 +37,7 @@ def mouse_camera_movement(mouse, camera)
   return unless mouse.has_focus
 
   camera_move_area = 50
-  camera_move_speed = 10
+  camera_move_speed = 10 / camera[:zoom]
   if mouse.x <= camera_move_area
     camera[:center_x] -= camera_move_speed
   elsif mouse.x >= 1280 - camera_move_area
