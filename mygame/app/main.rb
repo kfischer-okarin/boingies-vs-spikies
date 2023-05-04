@@ -3,6 +3,7 @@ require 'app/camera.rb'
 def tick(args)
   setup(args) if args.tick_count.zero?
 
+  process_inputs(args)
   update(args)
   render(args)
 end
@@ -23,6 +24,30 @@ def setup(args)
   ]
   args.state.enemies = []
   args.state.camera = Camera.build center_x: 640, center_y: 360
+end
+
+def process_inputs(args)
+  mouse = args.inputs.mouse
+  camera = args.state.camera
+  mouse_camera_movement(mouse, camera)
+end
+
+def mouse_camera_movement(mouse, camera)
+  return unless mouse.has_focus
+
+  camera_move_area = 50
+  camera_move_speed = 10
+  if mouse.x <= camera_move_area
+    camera[:center_x] -= camera_move_speed
+  elsif mouse.x >= 1280 - camera_move_area
+    camera[:center_x] += camera_move_speed
+  end
+
+  if mouse.y <= camera_move_area
+    camera[:center_y] -= camera_move_speed
+  elsif mouse.y >= 720 - camera_move_area
+    camera[:center_y] += camera_move_speed
+  end
 end
 
 def update(args)
