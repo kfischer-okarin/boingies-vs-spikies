@@ -1,6 +1,7 @@
 def tick(args)
   setup(args) if args.tick_count.zero?
 
+  update(args)
   render(args)
 end
 
@@ -18,15 +19,55 @@ def setup(args)
     { x: 800, y: 220, w: 40, h: 500 },
     { x: 1000, y: 0, w: 40, h: 500 }
   ]
+  args.state.enemies = []
+end
+
+def update(args)
+  spawn_spikey(args) if args.tick_count.mod_zero? 60
+  move_enemies(args)
+  handle_dead_enemies(args)
+end
+
+def spawn_spikey(args)
+  args.state.enemies << {
+    x: 1200,
+    y: 10 + rand(600),
+    type: :spikey_ball
+  }
+end
+
+def move_enemies(args)
+  args.state.enemies.each do |enemy|
+    enemy[:x] -= 2
+  end
+end
+
+def handle_dead_enemies(args)
+  args.state.enemies.reject! { |enemy| enemy_dead?(enemy) }
+end
+
+def enemy_dead?(enemy)
+  # for now die when you reach the left side of the screen
+  enemy[:x] < 100
 end
 
 def render(args)
   render_walls(args)
+  render_enemies(args)
 end
 
 def render_walls(args)
   args.outputs.primitives << args.state.walls.map { |wall|
     wall.to_sprite(path: :pixel, r: 0, g: 0, b: 0)
+  }
+end
+
+def render_enemies(args)
+  args.outputs.primitives << args.state.enemies.map { |enemy|
+    enemy.to_sprite(
+      path: "sprites/#{enemy[:type]}.png", w: 100, h: 100,
+      anchor_x: 0.5, anchor_y: 0.5
+    )
   }
 end
 
