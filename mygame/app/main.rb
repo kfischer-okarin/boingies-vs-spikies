@@ -14,6 +14,8 @@ def setup(args)
   args.state.enemies = []
   args.state.camera = Camera.build
   args.state.player_area = { x: -100, y: -100, w: 200, h: 200 }
+
+  args.state.launchedTurrets = []
 end
 
 def process_inputs(args)
@@ -21,6 +23,7 @@ def process_inputs(args)
   camera = args.state.camera
   mouse_camera_movement(mouse, camera)
   mouse_camera_zoom(mouse, camera)
+  launch(args)
 end
 
 def mouse_camera_movement(mouse, camera)
@@ -52,6 +55,8 @@ def update(args)
   spawn_spikey(args) if args.tick_count.mod_zero? 60
   move_enemies(args)
   handle_dead_enemies(args)
+
+  tickLaunched(args)
 end
 
 def spawn_spikey(args)
@@ -100,6 +105,8 @@ def render(args)
   render_player_area(args)
   render_walls(args)
   render_enemies(args)
+  renderLaunched(args)
+  chargeBar args
 end
 
 def render_player_area(args)
@@ -124,6 +131,84 @@ def render_enemies(args)
       path: "sprites/#{enemy[:type]}.png"
     )
   }
+end
+
+def renderLaunched(args)
+  camera = args.state.camera
+  args.outputs.primitives << args.state.launchedTurrets.map { |lau|
+    Camera.transform! camera, lau.to_sprite(path: :pixel, r: 0, g: 0, b: 0)
+  }
+end
+
+# cursed magi code is go
+def launch args
+  m = args.inputs.mouse
+
+  args.state.charging ||=false
+  if m.click
+    if args.state.charging == false
+      args.state.charging = true
+      args.state.chargePower = 0
+    else
+      args.state.charging = false
+      # do a launch  take mouse pos then normalise to x y between -1 & 1
+      args.state.launchedTurrets << makeTurret(args, m.x, m.y)
+      args.state.chargePower = 0
+    end
+  end
+
+  if args.state.charging == true
+    # tick up the current charge state
+    args.state.maxChargePower ||= 720- 100
+    args.state.chargePower += 1
+    if args.state.chargePower > args.state.maxChargePower
+      args.state.chargePower = args.state.maxChargePower
+    end
+  end
+end
+
+def tickLaunched args
+  args.state.launchedTurrets.each_with_index do |lau, i|
+    lau.x += (lau.dx) * lau.pow
+    lau.y += (lau.dy+Math.sin(args.tick_count)) * lau.pow
+
+    lau.logical_x += lau.dx * lau.pow
+    lau.logical_y += lau.dy * lau.pow
+    lau.pow -= 1
+    if lau.pow <= 0
+      lau.pow = 0
+    end
+  end
+end
+
+def makeTurret(args, x, y)
+  p = args.state.player_area
+  camera = args.state.camera
+  # yeah this just wasn't working??? the idea was the I would calc a direction based on mouse pos vs player area, then normalise
+  # between -1 and 1 so it could be multiplied for the appropriate speed but math no work
+  #dx = normalise0to1( x - p.x,0,2)-1
+  #dy = normalise0to1( y - p.y,0,2)-1
+  dx = 1
+  dy = 1
+  {x: p.x, y: p.y, w:20, h:20, path: :pixel, r:200, dx: dx, dy:dy , pow: args.state.chargePower/5, logical_x: p.x, logical_y: p.y}
+end
+
+def normalise0to1 val, min,max
+	x = (val - min) / (max - min)
+	puts "result #{x} input val #{val}, min #{min}, max #{max}"
+
+	return x
+end
+
+
+def chargeBar args
+  args.state.chargyBary ||= {x:1100, y: 50, w:50, h:0, g:200, path: :pixel}
+
+  args.state.chargyBary.h = args.state.chargePower
+
+#I do not understand why this is pink but oh well XD
+  args.outputs.primitives << args.state.chargyBary.to_sprite
+
 end
 
 $gtk.reset
