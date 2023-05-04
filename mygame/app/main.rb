@@ -1,3 +1,5 @@
+require 'app/camera.rb'
+
 def tick(args)
   setup(args) if args.tick_count.zero?
 
@@ -20,6 +22,7 @@ def setup(args)
     { x: 1000, y: 0, w: 40, h: 500 }
   ]
   args.state.enemies = []
+  args.state.camera = Camera.build center_x: 640, center_y: 360
 end
 
 def update(args)
@@ -57,14 +60,16 @@ def render(args)
 end
 
 def render_walls(args)
+  camera = args.state.camera
   args.outputs.primitives << args.state.walls.map { |wall|
-    wall.to_sprite(path: :pixel, r: 0, g: 0, b: 0)
+    Camera.transform! camera, wall.to_sprite(path: :pixel, r: 0, g: 0, b: 0)
   }
 end
 
 def render_enemies(args)
+  camera = args.state.camera
   args.outputs.primitives << args.state.enemies.map { |enemy|
-    enemy.to_sprite(
+    Camera.transform! camera, enemy.to_sprite(
       path: "sprites/#{enemy[:type]}.png", w: 100, h: 100,
       anchor_x: 0.5, anchor_y: 0.5
     )
