@@ -55,6 +55,22 @@ def update(args)
 end
 
 def spawn_spikey(args)
+  direction = %i[top right bottom left].sample
+  case direction
+  when :top
+    x = -1200 + rand(1200)
+    y = 1200
+  when :right
+    x = 1200
+    y = -1200 + rand(1200)
+  when :bottom
+    x = -1200 + rand(1200)
+    y = -1200
+  when :left
+    x = -1200
+    y = -1200 + rand(1200)
+  end
+
   args.state.enemies << {
     x: x, y: y, w: 100, h: 100,
     anchor_x: 0.5, anchor_y: 0.5,
@@ -64,7 +80,10 @@ end
 
 def move_enemies(args)
   args.state.enemies.each do |enemy|
-    enemy[:x] -= 2
+    distance_to_center = Math.sqrt(enemy[:x]**2 + enemy[:y]**2)
+    speed = 2
+    enemy[:x] += -(enemy[:x] / distance_to_center) * speed
+    enemy[:y] += -(enemy[:y] / distance_to_center) * speed
   end
 end
 
