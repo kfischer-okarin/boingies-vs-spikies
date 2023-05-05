@@ -6,7 +6,6 @@ module StageEditor
 
     def tick(args)
       process_inputs(args)
-      update(args)
       render(args)
     end
 
@@ -110,9 +109,6 @@ module StageEditor
       }
       args.state.stage[:walls] << new_wall
       args.state.stage_editor[:selected] = new_wall
-    end
-
-    def update(args)
     end
 
     def render(args)
