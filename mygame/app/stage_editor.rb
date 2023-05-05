@@ -1,7 +1,7 @@
 module StageEditor
   class << self
     def start(args)
-      args.state.stage_editor = { selected: nil }
+      args.state.stage_editor = { selected: nil, dragged: nil }
     end
 
     def tick(args)
@@ -25,8 +25,8 @@ module StageEditor
       if args.state.stage_editor[:selected]
         handle_delete(args)
         handle_rotate(args)
+        handle_drag(args)
       end
-
     end
 
     def handle_selection(args)
@@ -51,6 +51,30 @@ module StageEditor
 
       selected = args.state.stage_editor[:selected]
       selected[:w], selected[:h] = selected[:h], selected[:w]
+    end
+
+    def handle_drag(args)
+      stage_editor = args.state.stage_editor
+      mouse = args.inputs.mouse
+      mouse_position = mouse_in_world(args)
+      selected = stage_editor[:selected]
+
+      if stage_editor[:dragged]
+        if mouse.button_left
+          dragged = stage_editor[:dragged]
+          selected[:x] = dragged[:dragged_start_x] + (mouse_position[:x] - dragged[:mouse_start_x])
+          selected[:y] = dragged[:dragged_start_y] + (mouse_position[:y] - dragged[:mouse_start_y])
+        else
+          stage_editor[:dragged] = nil
+        end
+      else
+        if selected && mouse.button_left
+          stage_editor[:dragged] = {
+            mouse_start_x: mouse_position[:x], mouse_start_y: mouse_position[:y],
+            dragged_start_x: selected[:x], dragged_start_y: selected[:y]
+          }
+        end
+      end
     end
 
     def update(args)
