@@ -1,10 +1,16 @@
 require 'app/camera.rb'
 require 'app/camera_movement.rb'
+require 'app/stage_editor.rb'
 
 def tick(args)
   setup(args) if args.tick_count.zero?
 
-  game_tick(args)
+  case args.state.scene
+  when :game
+    game_tick(args)
+  when :stage_editor
+    StageEditor.tick(args)
+  end
 end
 
 def game_tick(args)
@@ -14,6 +20,7 @@ def game_tick(args)
 end
 
 def setup(args)
+  args.state.scene = :game
   args.state.stage = load_stage
   args.state.enemies = []
   args.state.camera = Camera.build
@@ -29,6 +36,7 @@ end
 def game_process_inputs(args)
   CameraMovement.control_camera(mouse: args.inputs.mouse, camera: args.state.camera)
   control_launcher(args)
+  StageEditor.handle_onoff(args)
 end
 
 def control_launcher args
