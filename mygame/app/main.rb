@@ -71,10 +71,22 @@ def control_launcher args
     when :charging
       launcher[:state] = :idle
       # do a launch  take mouse pos then normalise to x y between -1 & 1
-      args.state.launchedTurrets << makeTurret(args, m.x, m.y)
+      args.state.launchedTurrets << build_turret(args, m)
       launcher[:power] = 0
     end
   end
+end
+
+def build_turret(args, mouse)
+  p = args.state.player_area
+  # Since mouse position is in screen coordinates, the player area position must also be in screen coordinates
+  # to get the correct direction vector
+  p_on_screen = Camera.transform args.state.camera, p
+  direction = Matrix.vec2(mouse.x - p_on_screen.x, mouse.y - p_on_screen.y)
+  Matrix.normalize! direction
+
+  launcher = args.state.launcher
+  { x: p.x, y: p.y, w: 20, h: 20, path: :pixel, r: 200, dx: direction.x, dy: direction.y , pow: launcher[:power] / 5, logical_x: p.x, logical_y: p.y }
 end
 
 def update(args)
@@ -197,26 +209,6 @@ def tickLaunched args
     end
   end
 end
-
-def makeTurret(args, x, y)
-  p = args.state.player_area
-  launcher = args.state.launcher
-  # yeah this just wasn't working??? the idea was the I would calc a direction based on mouse pos vs player area, then normalise
-  # between -1 and 1 so it could be multiplied for the appropriate speed but math no work
-  #dx = normalise0to1( x - p.x,0,2)-1
-  #dy = normalise0to1( y - p.y,0,2)-1
-  dx = 1
-  dy = 1
-  { x: p.x, y: p.y, w:20, h:20, path: :pixel, r:200, dx: dx, dy:dy , pow: launcher[:power] / 5, logical_x: p.x, logical_y: p.y }
-end
-
-def normalise0to1 val, min,max
-	x = (val - min) / (max - min)
-	puts "result #{x} input val #{val}, min #{min}, max #{max}"
-
-	return x
-end
-
 
 def chargeBar args
   args.state.chargyBary ||= {x:1100, y: 50, w:50, h:0, g:200, path: :pixel}
