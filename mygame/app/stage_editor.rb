@@ -33,10 +33,9 @@ module StageEditor
       mouse = args.inputs.mouse
       return unless mouse.click
 
-      mouse_point = { x: mouse.x, y: mouse.y, w: 0, h: 0 }
-      mouse_in_world = Camera.to_world_coordinates!(args.state.camera, mouse_point)
+      clicked_position = mouse_in_world(args)
       args.state.stage_editor[:selected] = args.state.stage[:walls].find { |wall|
-        mouse_in_world.inside_rect?(wall)
+        clicked_position.inside_rect?(wall)
       }
     end
 
@@ -85,6 +84,11 @@ module StageEditor
 
       rect_on_screen = Camera.transform(args.state.camera, selected)
       args.outputs.primitives << fat_border(rect_on_screen, line_width: 4, r: 255, g: 0, b: 0)
+    end
+
+    def mouse_in_world(args)
+      mouse_point = { x: args.inputs.mouse.x, y: args.inputs.mouse.y, w: 0, h: 0 }
+      Camera.to_world_coordinates!(args.state.camera, mouse_point)
     end
 
     def fat_border(rect, line_width:, **values)
