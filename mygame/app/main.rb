@@ -1,5 +1,4 @@
 require 'app/camera.rb'
-require 'app/stage.rb'
 
 def tick(args)
   setup(args) if args.tick_count.zero?
@@ -10,12 +9,17 @@ def tick(args)
 end
 
 def setup(args)
+  args.state.stage = load_stage
   args.state.walls = stage_walls
   args.state.enemies = []
   args.state.camera = Camera.build
   args.state.player_area = { x: 0, y: 0, w: 200, h: 200, anchor_x: 0.5, anchor_y: 0.5 }
   args.state.launcher = { state: :idle, power: 0, direction: nil }
   args.state.launched_turrets = []
+end
+
+def load_stage
+  $gtk.deserialize_state('stage')
 end
 
 def process_inputs(args)
