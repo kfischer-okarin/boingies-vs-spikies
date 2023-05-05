@@ -75,21 +75,13 @@ def control_launcher args
       launcher[:power] = 0
     end
   end
-
-  if launcher[:state] == :charging
-    # tick up the current charge state
-    args.state.maxChargePower ||= 720- 100
-    launcher[:power] += 1
-    if launcher[:power] > args.state.maxChargePower
-      launcher[:power] = args.state.maxChargePower
-    end
-  end
 end
 
 def update(args)
   spawn_spikey(args) if args.tick_count.mod_zero? 60
   move_enemies(args)
   handle_dead_enemies(args)
+  update_launcher(args)
 
   tickLaunched(args)
 end
@@ -134,6 +126,18 @@ end
 def enemy_dead?(args, enemy)
   # for now die when enemy touches player area
   enemy.intersect_rect? args.state.player_area
+end
+
+def update_launcher(args)
+  launcher = args.state.launcher
+  return unless launcher[:state] == :charging
+
+  # tick up the current charge state
+  args.state.maxChargePower ||= 720- 100
+  launcher[:power] += 1
+  if launcher[:power] > args.state.maxChargePower
+    launcher[:power] = args.state.maxChargePower
+  end
 end
 
 def render(args)
