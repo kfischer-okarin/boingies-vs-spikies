@@ -22,6 +22,11 @@ module StageEditor
       CameraMovement.control_camera(mouse: args.inputs.mouse, camera: args.state.camera)
       handle_onoff(args)
       handle_selection(args)
+      if args.state.stage_editor[:selected]
+        handle_delete(args)
+        handle_rotate(args)
+      end
+
     end
 
     def handle_selection(args)
@@ -33,6 +38,20 @@ module StageEditor
       args.state.stage_editor[:selected] = args.state.stage[:walls].find { |wall|
         mouse_in_world.inside_rect?(wall)
       }
+    end
+
+    def handle_delete(args)
+      return unless args.inputs.keyboard.key_down.d
+
+      args.state.stage[:walls].delete(args.state.stage_editor[:selected])
+      args.state.stage_editor[:selected] = nil
+    end
+
+    def handle_rotate(args)
+      return unless args.inputs.keyboard.key_down.r
+
+      selected = args.state.stage_editor[:selected]
+      selected[:w], selected[:h] = selected[:h], selected[:w]
     end
 
     def update(args)
@@ -52,6 +71,12 @@ module StageEditor
       args.outputs.primitives << {
         x: 1280, y: 720, text: 'STAGE EDITOR', size_enum: 10, alignment_enum: 2
       }.label!
+      state_editor = args.state.stage_editor
+      commands = []
+      if state_editor[:selected]
+        commands << '(D)elete, (R)otate'
+      end
+      args.outputs.primitives << { x: 0, y: 25, text: commands.join(', ') }.label!
     end
 
     def render_selection(args)
