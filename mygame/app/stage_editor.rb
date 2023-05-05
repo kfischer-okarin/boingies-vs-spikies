@@ -83,6 +83,8 @@ module StageEditor
           dragged = stage_editor[:dragged]
           selected[:x] = dragged[:dragged_start_x] + (mouse_position[:x] - dragged[:mouse_start_x])
           selected[:y] = dragged[:dragged_start_y] + (mouse_position[:y] - dragged[:mouse_start_y])
+          selected[:x] = selected[:x].idiv(10) * 10
+          selected[:y] = selected[:y].idiv(10) * 10
         else
           stage_editor[:dragged] = nil
         end
