@@ -23,7 +23,7 @@ def process_inputs(args)
   camera = args.state.camera
   mouse_camera_movement(mouse, camera)
   mouse_camera_zoom(mouse, camera)
-  launch(args)
+  control_launcher(args)
 end
 
 # Q: should move this to mouse_camera methods to camera module?
@@ -55,6 +55,33 @@ def mouse_camera_zoom(mouse, camera)
 
   camera[:zoom] += mouse.wheel.y * 0.1 * camera[:zoom]
   camera[:zoom] = camera[:zoom].clamp(0.25, 4)
+end
+
+# cursed magi code is go
+def control_launcher args
+  m = args.inputs.mouse
+
+  args.state.charging ||=false
+  if m.click
+    if args.state.charging == false
+      args.state.charging = true
+      args.state.chargePower = 0
+    else
+      args.state.charging = false
+      # do a launch  take mouse pos then normalise to x y between -1 & 1
+      args.state.launchedTurrets << makeTurret(args, m.x, m.y)
+      args.state.chargePower = 0
+    end
+  end
+
+  if args.state.charging == true
+    # tick up the current charge state
+    args.state.maxChargePower ||= 720- 100
+    args.state.chargePower += 1
+    if args.state.chargePower > args.state.maxChargePower
+      args.state.chargePower = args.state.maxChargePower
+    end
+  end
 end
 
 def update(args)
@@ -144,33 +171,6 @@ def renderLaunched(args)
   args.outputs.primitives << args.state.launchedTurrets.map { |lau|
     Camera.transform! camera, lau.to_sprite(path: :pixel, r: 0, g: 0, b: 0)
   }
-end
-
-# cursed magi code is go
-def launch args
-  m = args.inputs.mouse
-
-  args.state.charging ||=false
-  if m.click
-    if args.state.charging == false
-      args.state.charging = true
-      args.state.chargePower = 0
-    else
-      args.state.charging = false
-      # do a launch  take mouse pos then normalise to x y between -1 & 1
-      args.state.launchedTurrets << makeTurret(args, m.x, m.y)
-      args.state.chargePower = 0
-    end
-  end
-
-  if args.state.charging == true
-    # tick up the current charge state
-    args.state.maxChargePower ||= 720- 100
-    args.state.chargePower += 1
-    if args.state.chargePower > args.state.maxChargePower
-      args.state.chargePower = args.state.maxChargePower
-    end
-  end
 end
 
 def tickLaunched args
