@@ -220,6 +220,17 @@ def render_launcher_ui(args)
     x: 1100, y: 50, w: 50, h: args.state.launcher[:power],
     path: :pixel, r: 0, g: 200, b: 0,
   }.sprite!
+
+  launcher = args.state.launcher
+  if launcher[:direction]
+    player_area_on_screen = Camera.transform args.state.camera, args.state.player_area
+    x = player_area_on_screen.x
+    y = player_area_on_screen.y
+    length = 200
+    args.outputs.primitives << {
+      x: x, y: y, x2: x + launcher[:direction].x * length, y2: y + launcher[:direction].y * length
+    }.line!
+  end
 end
 
 $gtk.reset
