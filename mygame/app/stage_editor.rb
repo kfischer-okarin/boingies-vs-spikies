@@ -29,6 +29,7 @@ module StageEditor
       else
         handle_new_wall(args)
       end
+      handle_save(args)
     end
 
     def handle_selection(args)
@@ -111,6 +112,13 @@ module StageEditor
       args.state.stage_editor[:selected] = new_wall
     end
 
+    def handle_save(args)
+      return unless args.inputs.keyboard.key_down.one
+
+      $gtk.serialize_state 'stage', args.state.stage
+      $gtk.notify! 'Saved!'
+    end
+
     def render(args)
       render_player_area(args)
       render_stage(args)
@@ -126,7 +134,7 @@ module StageEditor
         x: 1280, y: 720, text: 'STAGE EDITOR', size_enum: 10, alignment_enum: 2
       }.label!
       state_editor = args.state.stage_editor
-      commands = []
+      commands = ['(0) Back to game, (1) Save']
       if state_editor[:selected]
         commands << '(D)elete, (R)otate, (L)onger, (S)horter'
       else
