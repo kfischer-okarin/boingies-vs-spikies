@@ -147,7 +147,7 @@ end
 
 def render(args)
   render_player_area(args)
-  render_walls(args)
+  render_stage(args)
   render_enemies(args)
   render_turrets(args)
   render_launcher_ui(args) if args.state.launcher[:state] == :charging
@@ -161,9 +161,10 @@ def render_player_area(args)
   )
 end
 
-def render_walls(args)
+def render_stage(args)
+  stage = args.state.stage
   camera = args.state.camera
-  args.outputs.primitives << args.state.stage[:walls].map { |wall|
+  args.outputs.primitives << stage[:walls].map { |wall|
     Camera.transform! camera, wall.to_sprite(path: :pixel, r: 0, g: 0, b: 0)
   }
 end
