@@ -10,7 +10,6 @@ end
 
 def setup(args)
   args.state.stage = load_stage
-  args.state.walls = stage_walls
   args.state.enemies = []
   args.state.camera = Camera.build
   args.state.player_area = { x: 0, y: 0, w: 200, h: 200, anchor_x: 0.5, anchor_y: 0.5 }
@@ -198,7 +197,7 @@ end
 
 def render_walls(args)
   camera = args.state.camera
-  args.outputs.primitives << args.state.walls.map { |wall|
+  args.outputs.primitives << args.state.stage[:walls].map { |wall|
     Camera.transform! camera, wall.to_sprite(path: :pixel, r: 0, g: 0, b: 0)
   }
 end
