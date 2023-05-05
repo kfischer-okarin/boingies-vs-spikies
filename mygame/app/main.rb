@@ -23,7 +23,7 @@ def load_stage
 end
 
 def process_inputs(args)
-  CameraMovement.control_camera(args.state.camera, args.inputs.mouse)
+  CameraMovement.control_camera(mouse: args.inputs.mouse, camera: args.state.camera)
   control_launcher(args)
 end
 

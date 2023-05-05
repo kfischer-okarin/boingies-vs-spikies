@@ -1,6 +1,6 @@
 module CameraMovement
   class << self
-    def control_camera(mouse, camera)
+    def control_camera(mouse:, camera:)
       move_camera_with_mouse(mouse, camera)
       zoom_camera_with_mouse_wheel(mouse, camera)
     end
