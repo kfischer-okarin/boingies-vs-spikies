@@ -111,11 +111,16 @@ def spawn_spikey(args)
 end
 
 def move_enemies(args)
+  player_area = args.state.player_area
   args.state.enemies.each do |enemy|
-    distance_to_center = Math.sqrt(enemy[:x]**2 + enemy[:y]**2)
+    to_player_area = Matrix.vec2(
+      player_area[:x] - enemy[:x],
+      player_area[:y] - enemy[:y]
+    )
+    Matrix.normalize! to_player_area
     speed = 2
-    enemy[:x] += -(enemy[:x] / distance_to_center) * speed
-    enemy[:y] += -(enemy[:y] / distance_to_center) * speed
+    enemy[:x] += to_player_area[:x] * speed
+    enemy[:y] += to_player_area[:y] * speed
   end
 end
 
