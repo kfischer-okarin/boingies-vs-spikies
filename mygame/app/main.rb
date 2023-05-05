@@ -174,7 +174,7 @@ def render(args)
   render_walls(args)
   render_enemies(args)
   render_turrets(args)
-  chargeBar args
+  render_launcher_ui(args) if args.state.launcher[:state] == :charging
 end
 
 def render_player_area(args)
@@ -208,13 +208,11 @@ def render_turrets(args)
   }
 end
 
-def chargeBar args
-  args.state.chargyBary ||= {x:1100, y: 50, w:50, h:0, g:200, path: :pixel}
-
-  args.state.chargyBary.h = args.state.launcher[:power]
-
-#I do not understand why this is pink but oh well XD
-  args.outputs.primitives << args.state.chargyBary.to_sprite
+def render_launcher_ui(args)
+  args.outputs.primitives << {
+    x: 1100, y: 50, w: 50, h: args.state.launcher[:power],
+    path: :pixel, r: 0, g: 200, b: 0,
+  }.sprite!
 end
 
 $gtk.reset
