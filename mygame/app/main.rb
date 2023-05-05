@@ -15,8 +15,7 @@ def setup(args)
   args.state.camera = Camera.build
   args.state.player_area = { x: 0, y: 0, w: 200, h: 200, anchor_x: 0.5, anchor_y: 0.5 }
   args.state.launcher = { state: :idle, power: 0 }
-
-  args.state.launchedTurrets = []
+  args.state.launched_turrets = []
 end
 
 def process_inputs(args)
@@ -71,7 +70,7 @@ def control_launcher args
     when :charging
       launcher[:state] = :idle
       # do a launch  take mouse pos then normalise to x y between -1 & 1
-      args.state.launchedTurrets << build_turret(args, m)
+      args.state.launched_turrets << build_turret(args, m)
       launcher[:power] = 0
     end
   end
@@ -94,8 +93,7 @@ def update(args)
   move_enemies(args)
   handle_dead_enemies(args)
   update_launcher(args)
-
-  tickLaunched(args)
+  update_launched_turrets(args)
 end
 
 def spawn_spikey(args)
@@ -157,6 +155,20 @@ def update_launcher(args)
   end
 end
 
+def update_launched_turrets args
+  args.state.launched_turrets.each do |lau|
+    lau.x += (lau.dx) * lau.pow
+    lau.y += (lau.dy+Math.sin(args.tick_count)) * lau.pow
+
+    lau.logical_x += lau.dx * lau.pow
+    lau.logical_y += lau.dy * lau.pow
+    lau.pow -= 1
+    if lau.pow <= 0
+      lau.pow = 0
+    end
+  end
+end
+
 def render(args)
   render_player_area(args)
   render_walls(args)
@@ -191,23 +203,9 @@ end
 
 def renderLaunched(args)
   camera = args.state.camera
-  args.outputs.primitives << args.state.launchedTurrets.map { |lau|
+  args.outputs.primitives << args.state.launched_turrets.map { |lau|
     Camera.transform! camera, lau.to_sprite(path: :pixel, r: 0, g: 0, b: 0)
   }
-end
-
-def tickLaunched args
-  args.state.launchedTurrets.each_with_index do |lau, i|
-    lau.x += (lau.dx) * lau.pow
-    lau.y += (lau.dy+Math.sin(args.tick_count)) * lau.pow
-
-    lau.logical_x += lau.dx * lau.pow
-    lau.logical_y += lau.dy * lau.pow
-    lau.pow -= 1
-    if lau.pow <= 0
-      lau.pow = 0
-    end
-  end
 end
 
 def chargeBar args
