@@ -62,15 +62,16 @@ def control_launcher args
   m = args.inputs.mouse
   launcher = args.state.launcher
 
-  if m.click
-    case launcher[:state]
-    when :idle
+  case launcher[:state]
+  when :idle
+    if m.click
       launcher[:state] = :charging
       launcher[:power] = 0
-    when :charging
-      launcher[:state] = :idle
-      # do a launch  take mouse pos then normalise to x y between -1 & 1
+    end
+  when :charging
+    if m.click
       args.state.launched_turrets << build_turret(args, m)
+      launcher[:state] = :idle
       launcher[:power] = 0
     end
   end
