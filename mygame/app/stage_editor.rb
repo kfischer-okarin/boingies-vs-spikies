@@ -25,6 +25,7 @@ module StageEditor
       if args.state.stage_editor[:selected]
         handle_delete(args)
         handle_rotate(args)
+        handle_size_change(args)
         handle_drag(args)
       end
     end
@@ -51,6 +52,22 @@ module StageEditor
 
       selected = args.state.stage_editor[:selected]
       selected[:w], selected[:h] = selected[:h], selected[:w]
+    end
+
+    def handle_size_change(args)
+      selected = args.state.stage_editor[:selected]
+      return unless selected
+
+      long_dimension = selected[:w] >= selected[:h] ? :w : :h
+
+      key_held = args.inputs.keyboard.key_held
+      min_length = 100
+      if key_held.l
+        selected[long_dimension] += 10
+      elsif key_held.s
+        selected[long_dimension] -= 10
+        selected[long_dimension] = min_length if selected[long_dimension] < min_length
+      end
     end
 
     def handle_drag(args)
@@ -97,7 +114,7 @@ module StageEditor
       state_editor = args.state.stage_editor
       commands = []
       if state_editor[:selected]
-        commands << '(D)elete, (R)otate'
+        commands << '(D)elete, (R)otate, (L)onger, (S)horter'
       end
       args.outputs.primitives << { x: 0, y: 25, text: commands.join(', ') }.label!
     end
