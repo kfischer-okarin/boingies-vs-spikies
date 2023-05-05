@@ -86,7 +86,7 @@ def build_turret(args, mouse)
   Matrix.normalize! direction
 
   launcher = args.state.launcher
-  { x: p.x, y: p.y, w: 20, h: 20, path: :pixel, r: 200, dx: direction.x, dy: direction.y , pow: launcher[:power] / 5, logical_x: p.x, logical_y: p.y }
+  { x: p.x, y: p.y, w: 20, h: 20, dx: direction.x, dy: direction.y, pow: launcher[:power] / 5, logical_x: p.x, logical_y: p.y }
 end
 
 def update(args)
