@@ -14,7 +14,7 @@ def setup(args)
   args.state.enemies = []
   args.state.camera = Camera.build
   args.state.player_area = { x: 0, y: 0, w: 200, h: 200, anchor_x: 0.5, anchor_y: 0.5 }
-  args.state.launcher = { state: :idle, power: 0 }
+  args.state.launcher = { state: :idle, power: 0, direction: nil }
   args.state.launched_turrets = []
 end
 
@@ -69,24 +69,30 @@ def control_launcher args
       launcher[:power] = 0
     end
   when :charging
+    launcher[:direction] = calculate_launcher_direction(args, m)
     if m.click
-      args.state.launched_turrets << build_turret(args, m)
+      args.state.launched_turrets << build_turret(args)
       launcher[:state] = :idle
       launcher[:power] = 0
     end
   end
 end
 
-def build_turret(args, mouse)
-  p = args.state.player_area
-  # Since mouse position is in screen coordinates, the player area position must also be in screen coordinates
+def calculate_launcher_direction(args, mouse)
   # to get the correct direction vector
-  p_on_screen = Camera.transform args.state.camera, p
-  direction = Matrix.vec2(mouse.x - p_on_screen.x, mouse.y - p_on_screen.y)
+  player_area_on_screen = Camera.transform args.state.camera, args.state.player_area
+  direction = Matrix.vec2(
+    mouse.x - player_area_on_screen.x,
+    mouse.y - player_area_on_screen.y
+  )
   Matrix.normalize! direction
+  direction
+end
 
+def build_turret(args)
+  p = args.state.player_area
   launcher = args.state.launcher
-  { x: p.x, y: p.y, w: 20, h: 20, dx: direction.x, dy: direction.y, pow: launcher[:power] / 5, logical_x: p.x, logical_y: p.y }
+  { x: p.x, y: p.y, w: 20, h: 20, dx: launcher[:direction].x, dy: launcher[:direction].y, pow: launcher[:power] / 5, logical_x: p.x, logical_y: p.y }
 end
 
 def update(args)
