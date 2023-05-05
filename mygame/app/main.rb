@@ -14,7 +14,7 @@ def setup(args)
   args.state.enemies = []
   args.state.camera = Camera.build
   args.state.player_area = { x: 0, y: 0, w: 200, h: 200, anchor_x: 0.5, anchor_y: 0.5 }
-  args.state.launcher = { state: :idle }
+  args.state.launcher = { state: :idle, power: 0 }
 
   args.state.launchedTurrets = []
 end
@@ -67,21 +67,21 @@ def control_launcher args
     case launcher[:state]
     when :idle
       launcher[:state] = :charging
-      args.state.chargePower = 0
+      launcher[:power] = 0
     when :charging
       launcher[:state] = :idle
       # do a launch  take mouse pos then normalise to x y between -1 & 1
       args.state.launchedTurrets << makeTurret(args, m.x, m.y)
-      args.state.chargePower = 0
+      launcher[:power] = 0
     end
   end
 
   if launcher[:state] == :charging
     # tick up the current charge state
     args.state.maxChargePower ||= 720- 100
-    args.state.chargePower += 1
-    if args.state.chargePower > args.state.maxChargePower
-      args.state.chargePower = args.state.maxChargePower
+    launcher[:power] += 1
+    if launcher[:power] > args.state.maxChargePower
+      launcher[:power] = args.state.maxChargePower
     end
   end
 end
@@ -191,14 +191,14 @@ end
 
 def makeTurret(args, x, y)
   p = args.state.player_area
-  camera = args.state.camera
+  launcher = args.state.launcher
   # yeah this just wasn't working??? the idea was the I would calc a direction based on mouse pos vs player area, then normalise
   # between -1 and 1 so it could be multiplied for the appropriate speed but math no work
   #dx = normalise0to1( x - p.x,0,2)-1
   #dy = normalise0to1( y - p.y,0,2)-1
   dx = 1
   dy = 1
-  {x: p.x, y: p.y, w:20, h:20, path: :pixel, r:200, dx: dx, dy:dy , pow: args.state.chargePower/5, logical_x: p.x, logical_y: p.y}
+  { x: p.x, y: p.y, w:20, h:20, path: :pixel, r:200, dx: dx, dy:dy , pow: launcher[:power] / 5, logical_x: p.x, logical_y: p.y }
 end
 
 def normalise0to1 val, min,max
@@ -212,7 +212,7 @@ end
 def chargeBar args
   args.state.chargyBary ||= {x:1100, y: 50, w:50, h:0, g:200, path: :pixel}
 
-  args.state.chargyBary.h = args.state.chargePower
+  args.state.chargyBary.h = args.state.launcher[:power]
 
 #I do not understand why this is pink but oh well XD
   args.outputs.primitives << args.state.chargyBary.to_sprite
