@@ -4,9 +4,13 @@ require 'app/camera_movement.rb'
 def tick(args)
   setup(args) if args.tick_count.zero?
 
-  process_inputs(args)
-  update(args)
-  render(args)
+  game_tick(args)
+end
+
+def game_tick(args)
+  game_process_inputs(args)
+  game_update(args)
+  game_render(args)
 end
 
 def setup(args)
@@ -22,7 +26,7 @@ def load_stage
   $gtk.deserialize_state('stage')
 end
 
-def process_inputs(args)
+def game_process_inputs(args)
   CameraMovement.control_camera(mouse: args.inputs.mouse, camera: args.state.camera)
   control_launcher(args)
 end
@@ -64,7 +68,7 @@ def build_turret(args)
   { x: p.x, y: p.y, w: 20, h: 20, dx: launcher[:direction].x, dy: launcher[:direction].y, pow: launcher[:power] / 5, logical_x: p.x, logical_y: p.y }
 end
 
-def update(args)
+def game_update(args)
   spawn_spikey(args) if args.tick_count.mod_zero? 60
   move_enemies(args)
   handle_dead_enemies(args)
@@ -145,7 +149,7 @@ def update_launched_turrets args
   end
 end
 
-def render(args)
+def game_render(args)
   render_player_area(args)
   render_stage(args)
   render_enemies(args)
