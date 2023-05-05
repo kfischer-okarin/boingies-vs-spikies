@@ -27,6 +27,8 @@ module StageEditor
         handle_rotate(args)
         handle_size_change(args)
         handle_drag(args)
+      else
+        handle_new_wall(args)
       end
     end
 
@@ -94,6 +96,22 @@ module StageEditor
       end
     end
 
+    def handle_new_wall(args)
+      return unless args.inputs.keyboard.key_down.n
+
+      mouse = mouse_in_world(args)
+      new_wall_length = 300
+      new_wall_thickness = 40
+      new_wall = {
+        x: mouse[:x] - new_wall_length.idiv(2),
+        y: mouse[:y] - new_wall_thickness.idiv(2),
+        w: new_wall_length,
+        h: new_wall_thickness
+      }
+      args.state.stage[:walls] << new_wall
+      args.state.stage_editor[:selected] = new_wall
+    end
+
     def update(args)
     end
 
@@ -115,6 +133,8 @@ module StageEditor
       commands = []
       if state_editor[:selected]
         commands << '(D)elete, (R)otate, (L)onger, (S)horter'
+      else
+        commands << '(N)ew wall'
       end
       args.outputs.primitives << { x: 0, y: 25, text: commands.join(', ') }.label!
     end
