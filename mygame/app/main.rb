@@ -1,4 +1,5 @@
 require 'app/camera.rb'
+require 'app/camera_movement.rb'
 
 def tick(args)
   setup(args) if args.tick_count.zero?
@@ -22,45 +23,10 @@ def load_stage
 end
 
 def process_inputs(args)
-  mouse = args.inputs.mouse
-  camera = args.state.camera
-  mouse_camera_movement(mouse, camera)
-  mouse_camera_zoom(mouse, camera)
+  CameraMovement.control_camera(args.state.camera, args.inputs.mouse)
   control_launcher(args)
 end
 
-# Q: should move this to mouse_camera methods to camera module?
-def mouse_camera_movement(mouse, camera)
-  return unless mouse.has_focus
-
-  camera_move_area_x = 250
-  camera_speed = 20
-  if mouse.x <= camera_move_area_x
-    camera_move_factor = (camera_move_area_x - mouse.x) / camera_move_area_x
-    camera[:center_x] -= (camera_speed * camera_move_factor) / camera.zoom
-  elsif mouse.x >= 1280 - camera_move_area_x
-    camera_move_factor = ((mouse.x - (1280 - camera_move_area_x))) / camera_move_area_x
-    camera[:center_x] += (camera_speed * camera_move_factor) / camera.zoom
-  end
-
-  camera_move_area_y = 125
-  if mouse.y <= camera_move_area_y
-    camera_move_factor = (camera_move_area_y - mouse.y) / camera_move_area_y
-    camera[:center_y] -= (camera_speed * camera_move_factor) / camera.zoom
-  elsif mouse.y >= 720 - camera_move_area_y
-    camera_move_factor = ((mouse.y - (720 - camera_move_area_y))) / camera_move_area_y
-    camera[:center_y] += (camera_speed * camera_move_factor) / camera.zoom
-  end
-end
-
-def mouse_camera_zoom(mouse, camera)
-  return unless mouse.wheel
-
-  camera[:zoom] += mouse.wheel.y * 0.1 * camera[:zoom]
-  camera[:zoom] = camera[:zoom].clamp(0.25, 4)
-end
-
-# cursed magi code is go
 def control_launcher args
   m = args.inputs.mouse
   launcher = args.state.launcher
