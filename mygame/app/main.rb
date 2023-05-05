@@ -26,21 +26,27 @@ def process_inputs(args)
   launch(args)
 end
 
+# Q: should move this to mouse_camera methods to camera module?
 def mouse_camera_movement(mouse, camera)
   return unless mouse.has_focus
 
-  camera_move_area = 50
-  camera_move_speed = 10 / camera[:zoom]
-  if mouse.x <= camera_move_area
-    camera[:center_x] -= camera_move_speed
-  elsif mouse.x >= 1280 - camera_move_area
-    camera[:center_x] += camera_move_speed
+  camera_move_area_x = 250
+  camera_speed = 20
+  if mouse.x <= camera_move_area_x
+    camera_move_factor = (camera_move_area_x - mouse.x) / camera_move_area_x
+    camera[:center_x] -= (camera_speed * camera_move_factor) / camera.zoom
+  elsif mouse.x >= 1280 - camera_move_area_x
+    camera_move_factor = ((mouse.x - (1280 - camera_move_area_x))) / camera_move_area_x
+    camera[:center_x] += (camera_speed * camera_move_factor) / camera.zoom
   end
 
-  if mouse.y <= camera_move_area
-    camera[:center_y] -= camera_move_speed
-  elsif mouse.y >= 720 - camera_move_area
-    camera[:center_y] += camera_move_speed
+  camera_move_area_y = 125
+  if mouse.y <= camera_move_area_y
+    camera_move_factor = (camera_move_area_y - mouse.y) / camera_move_area_y
+    camera[:center_y] -= (camera_speed * camera_move_factor) / camera.zoom
+  elsif mouse.y >= 720 - camera_move_area_y
+    camera_move_factor = ((mouse.y - (720 - camera_move_area_y))) / camera_move_area_y
+    camera[:center_y] += (camera_speed * camera_move_factor) / camera.zoom
   end
 end
 
@@ -208,7 +214,6 @@ def chargeBar args
 
 #I do not understand why this is pink but oh well XD
   args.outputs.primitives << args.state.chargyBary.to_sprite
-
 end
 
 $gtk.reset
