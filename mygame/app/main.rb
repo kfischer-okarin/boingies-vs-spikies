@@ -13,7 +13,7 @@ def setup(args)
   args.state.walls = stage_walls
   args.state.enemies = []
   args.state.camera = Camera.build
-  args.state.player_area = { x: -100, y: -100, w: 200, h: 200 }
+  args.state.player_area = { x: 0, y: 0, w: 200, h: 200, anchor_x: 0.5, anchor_y: 0.5 }
 
   args.state.launchedTurrets = []
 end
