@@ -1,6 +1,7 @@
 module StageEditor
   class << self
     def start(args)
+      args.state.stage_editor = { selected: nil }
     end
 
     def tick(args)
@@ -20,6 +21,18 @@ module StageEditor
     def process_inputs(args)
       CameraMovement.control_camera(mouse: args.inputs.mouse, camera: args.state.camera)
       handle_onoff(args)
+      handle_selection(args)
+    end
+
+    def handle_selection(args)
+      mouse = args.inputs.mouse
+      return unless mouse.click
+
+      mouse_point = { x: mouse.x, y: mouse.y, w: 0, h: 0 }
+      mouse_in_world = Camera.to_world_coordinates!(args.state.camera, mouse_point)
+      args.state.stage_editor[:selected] = args.state.stage[:walls].find { |wall|
+        mouse_in_world.inside_rect?(wall)
+      }
     end
 
     def update(args)
@@ -32,12 +45,30 @@ module StageEditor
       render_turrets(args)
 
       render_ui(args)
+      render_selection(args)
     end
 
     def render_ui(args)
       args.outputs.primitives << {
         x: 1280, y: 720, text: 'STAGE EDITOR', size_enum: 10, alignment_enum: 2
       }.label!
+    end
+
+    def render_selection(args)
+      selected = args.state.stage_editor[:selected]
+      return unless selected
+
+      rect_on_screen = Camera.transform(args.state.camera, selected)
+      args.outputs.primitives << fat_border(rect_on_screen, line_width: 4, r: 255, g: 0, b: 0)
+    end
+
+    def fat_border(rect, line_width:, **values)
+      [
+        { x: rect.x - line_width, y: rect.y - line_width, w: rect.w + line_width * 2, h: line_width, path: :pixel }.sprite!(values),
+        { x: rect.x - line_width, y: rect.y - line_width, w: line_width, h: rect.h + line_width * 2, path: :pixel }.sprite!(values),
+        { x: rect.x - line_width, y: rect.y + rect.h, w: rect.w + line_width * 2, h: line_width, path: :pixel }.sprite!(values),
+        { x: rect.x + rect.w, y: rect.y - line_width, w: line_width, h: rect.h + line_width * 2, path: :pixel }.sprite!(values)
+      ]
     end
   end
 end
