@@ -14,6 +14,7 @@ def setup(args)
   args.state.enemies = []
   args.state.camera = Camera.build
   args.state.player_area = { x: 0, y: 0, w: 200, h: 200, anchor_x: 0.5, anchor_y: 0.5 }
+  args.state.launcher = { state: :idle }
 
   args.state.launchedTurrets = []
 end
@@ -60,21 +61,22 @@ end
 # cursed magi code is go
 def control_launcher args
   m = args.inputs.mouse
+  launcher = args.state.launcher
 
-  args.state.charging ||=false
   if m.click
-    if args.state.charging == false
-      args.state.charging = true
+    case launcher[:state]
+    when :idle
+      launcher[:state] = :charging
       args.state.chargePower = 0
-    else
-      args.state.charging = false
+    when :charging
+      launcher[:state] = :idle
       # do a launch  take mouse pos then normalise to x y between -1 & 1
       args.state.launchedTurrets << makeTurret(args, m.x, m.y)
       args.state.chargePower = 0
     end
   end
 
-  if args.state.charging == true
+  if launcher[:state] == :charging
     # tick up the current charge state
     args.state.maxChargePower ||= 720- 100
     args.state.chargePower += 1
