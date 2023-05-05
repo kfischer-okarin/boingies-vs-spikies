@@ -173,7 +173,7 @@ def render(args)
   render_player_area(args)
   render_walls(args)
   render_enemies(args)
-  renderLaunched(args)
+  render_turrets(args)
   chargeBar args
 end
 
@@ -201,10 +201,10 @@ def render_enemies(args)
   }
 end
 
-def renderLaunched(args)
+def render_turrets(args)
   camera = args.state.camera
-  args.outputs.primitives << args.state.launched_turrets.map { |lau|
-    Camera.transform! camera, lau.to_sprite(path: :pixel, r: 0, g: 0, b: 0)
+  args.outputs.primitives << args.state.launched_turrets.map { |turret|
+    Camera.transform! camera, turret.to_sprite(path: :pixel, r: 0, g: 0, b: 0)
   }
 end
 
