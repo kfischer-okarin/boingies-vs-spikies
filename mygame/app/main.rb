@@ -1,7 +1,7 @@
+require "app/base.rb"
 require "app/camera.rb"
 require "app/camera_movement.rb"
 require "app/stage_editor.rb"
-require "app/base.rb"
 
 def tick(args)
   setup(args) if args.tick_count.zero?
