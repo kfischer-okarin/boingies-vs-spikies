@@ -36,7 +36,7 @@ def load_stage
 end
 
 def game_process_inputs(args)
-  unless Base.dead?(args.state.base)
+  unless game_over?(args)
     CameraMovement.control_camera(
       mouse: args.inputs.mouse,
       camera: args.state.camera,
@@ -86,7 +86,7 @@ def build_turret(args)
 end
 
 def game_update(args)
-  return if Base.dead?(args.state.base)
+  return if game_over?(args)
 
   spawn_spikey(args) if args.tick_count.mod_zero? 60
   move_enemies(args)
@@ -179,6 +179,10 @@ def update_launched_turrets args
       lau.pow = 0
     end
   end
+end
+
+def game_over?(args)
+  Base.dead?(args.state.base) # || winning condition
 end
 
 def game_render(args)
