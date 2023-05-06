@@ -11,7 +11,7 @@ def makeTurret x,y,cd, type
     maxCd:cd,
     dmg: 10,
     shotSpeed: speed,
-    type: type,
+    type: type, # yet to be used but will be
     range: range,
     life_time:life_time
   }
@@ -41,7 +41,7 @@ def tick_turret args
   args.state.projectiles.each do |shot|
     shot.life_time -=1
 
-    if shot.target != nil
+    if shot.target != nil && shot.homing == true
       shot.target_x = shot.target.x
       shot.target_y = shot.target.y
     end
@@ -68,12 +68,11 @@ def tick_turret args
 
         shot.pen -=1
         shot.r =0
-        puts "we hit things"
       end
     end
   end
 end
-
+#doing center to center for the collision just felt like the best option
 def circle_to_point_col cir, pt
   cx = cir.x + (cir.w/2)
   cy = cir.y + (cir.h/2)
@@ -109,7 +108,8 @@ def make_projectile target, turret
     dmg: turret.dmg,
     pen:0,
     life_time: turret.life_time,
-    target: target
+    target: target,
+    homing: true # can be refactored later to be good
   }
 end
 
