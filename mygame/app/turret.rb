@@ -9,7 +9,7 @@ def makeTurret x,y,cd, type
     h:20,
     cd:0,
     maxCd:cd,
-    dmg: 10,
+    dmg: 100,
     shotSpeed: speed,
     type: type, # yet to be used but will be
     range: range,
@@ -68,6 +68,11 @@ def tick_turret args
 
         shot.pen -=1
         shot.r =0
+
+        if en.health <=0
+          args.state.escessence_drops << make_essence(en)
+        end
+
       end
     end
   end

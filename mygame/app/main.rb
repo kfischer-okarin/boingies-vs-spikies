@@ -2,6 +2,7 @@ require "app/base.rb"
 require "app/camera.rb"
 require "app/camera_movement.rb"
 require "app/turret.rb"
+require "app/essence.rb"
 require "app/stage_editor.rb"
 
 def tick(args)
@@ -35,6 +36,8 @@ def setup(args)
   args.state.projectiles = []
 
   args.state.dmg_popups = []
+  args.state.escessence_drops = []
+  args.state.essence_held = 0
 end
 
 def load_stage
@@ -115,6 +118,7 @@ def game_update(args)
   update_launched_turrets(args)
   tick_turret(args)
   update_dmg_popups(args)
+  update_essence(args)
 end
 
 def spawn_spikey(args)
@@ -139,7 +143,8 @@ def spawn_spikey(args)
     x: x, y: y, w: 100, h: 100,
     anchor_x: 0.5, anchor_y: 0.5,
     health: 100,
-    type: :spikey_ball
+    type: :spikey_ball,
+    essence_amount: 10
   }
 end
 
@@ -222,6 +227,7 @@ def game_render(args)
   render_game_over(args) if Base.dead?(args.state.base)
   render_debug_info(args) if args.state.show_debug_info
   render_dmg_popups(args)
+  render_essence(args)
 end
 
 def render_base(args)
