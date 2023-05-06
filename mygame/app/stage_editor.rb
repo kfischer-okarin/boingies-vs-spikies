@@ -58,6 +58,7 @@ module StageEditor
 
       selected = args.state.stage_editor[:selected]
       selected[:w], selected[:h] = selected[:h], selected[:w]
+      clamp_to_stage(args, selected)
     end
 
     def handle_size_change(args)
@@ -74,6 +75,8 @@ module StageEditor
         selected[long_dimension] -= 10
         selected[long_dimension] = min_length if selected[long_dimension] < min_length
       end
+
+      clamp_to_stage(args, selected)
     end
 
     def handle_drag(args)
@@ -89,6 +92,7 @@ module StageEditor
           selected[:y] = dragged[:dragged_start_y] + (mouse_position[:y] - dragged[:mouse_start_y])
           selected[:x] = selected[:x].idiv(10) * 10
           selected[:y] = selected[:y].idiv(10) * 10
+          clamp_to_stage(args, selected)
         else
           stage_editor[:dragged] = nil
         end
@@ -116,6 +120,7 @@ module StageEditor
       }
       args.state.stage[:walls] << new_wall
       args.state.stage_editor[:selected] = new_wall
+      clamp_to_stage(args, new_wall)
     end
 
     def handle_save(args)
@@ -123,6 +128,12 @@ module StageEditor
 
       $gtk.serialize_state 'stage', args.state.stage
       $gtk.notify! 'Saved!'
+    end
+
+    def clamp_to_stage(args, wall)
+      stage = args.state.stage
+      wall[:x] = wall[:x].clamp(-(stage[:w] / 2), (stage[:w] / 2) - wall[:w])
+      wall[:y] = wall[:y].clamp(-(stage[:w] / 2), (stage[:h] / 2) - wall[:h])
     end
 
     def render(args)
