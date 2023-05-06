@@ -34,7 +34,11 @@ def load_stage
 end
 
 def game_process_inputs(args)
-  CameraMovement.control_camera(mouse: args.inputs.mouse, camera: args.state.camera)
+  CameraMovement.control_camera(
+    mouse: args.inputs.mouse,
+    camera: args.state.camera,
+    stage: args.state.stage
+  )
   control_launcher(args)
   StageEditor.handle_onoff(args)
 end

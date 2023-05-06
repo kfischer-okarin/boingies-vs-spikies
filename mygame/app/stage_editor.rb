@@ -18,7 +18,11 @@ module StageEditor
     private
 
     def process_inputs(args)
-      CameraMovement.control_camera(mouse: args.inputs.mouse, camera: args.state.camera)
+      CameraMovement.control_camera(
+        mouse: args.inputs.mouse,
+        camera: args.state.camera,
+        stage: args.state.stage
+      )
       handle_onoff(args)
       handle_selection(args)
       if args.state.stage_editor[:selected]
