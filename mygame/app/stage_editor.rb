@@ -137,7 +137,7 @@ module StageEditor
     end
 
     def render(args)
-      render_player_area(args)
+      render_base(args)
       render_stage(args)
       render_enemies(args)
       render_turrets(args)
