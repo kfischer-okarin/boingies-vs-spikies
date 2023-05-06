@@ -43,7 +43,10 @@ def game_process_inputs(args)
       stage: args.state.stage
     )
     control_launcher(args)
-    StageEditor.handle_onoff(args)
+
+    unless $gtk.production?
+      StageEditor.handle_onoff(args)
+    end
   end
   $gtk.reset if args.inputs.keyboard.key_up.r
 end
