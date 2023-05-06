@@ -22,6 +22,7 @@ def game_tick(args)
 end
 
 def setup(args)
+  args.state.show_debug_info = false
   args.state.scene = :game
   args.state.stage = load_stage
   args.state.enemies = []
@@ -46,6 +47,7 @@ def game_process_inputs(args)
 
     unless $gtk.production?
       StageEditor.handle_onoff(args)
+      handle_toggle_debug_info(args)
     end
   end
   $gtk.reset if args.inputs.keyboard.key_up.r
@@ -86,6 +88,12 @@ def build_turret(args)
   p = args.state.base
   launcher = args.state.launcher
   {x: p.x, y: p.y, w: 20, h: 20, dx: launcher[:direction].x, dy: launcher[:direction].y, pow: launcher[:power] / 5, logical_x: p.x, logical_y: p.y}
+end
+
+def handle_toggle_debug_info(args)
+  return unless args.inputs.keyboard.key_down.nine
+
+  args.state.show_debug_info = !args.state.show_debug_info
 end
 
 def game_update(args)
@@ -195,6 +203,7 @@ def game_render(args)
   render_turrets(args)
   render_launcher_ui(args) if args.state.launcher[:state] == :charging
   render_game_over(args) if Base.dead?(args.state.base)
+  render_debug_info(args) if args.state.show_debug_info
 end
 
 def render_base(args)
@@ -289,6 +298,13 @@ def render_game_over(args)
       vertical_alignment_enum: 1,
       r: 0, g: 0, b: 0
     }.to_label
+  ]
+end
+
+def render_debug_info(args)
+  args.outputs.primitives << [
+    { x: 0, y: 690, w: 200, h: 30, r: 0, g: 0, b: 0, a: 128, path: :pixel }.sprite!,
+    { x: 5, y: 715, text: "FPS: #{args.gtk.current_framerate.to_i}", r: 255, g: 255, b: 255 }.label!
   ]
 end
 
