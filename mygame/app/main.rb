@@ -183,6 +183,21 @@ def render_stage(args)
   args.outputs.primitives << stage[:walls].map { |wall|
     Camera.transform! camera, wall.to_sprite(path: :pixel, r: 0, g: 0, b: 0)
   }
+  render_stage_border(args)
+end
+
+def render_stage_border(args)
+  stage = args.state.stage
+  camera = args.state.camera
+  bottom_left = Camera.transform! camera, { x: -stage[:w] / 2, y: -stage[:h] / 2, w: 0, h: 0 }
+  top_right = Camera.transform! camera, { x: stage[:w] / 2, y: stage[:h] / 2, w: 0, h: 0 }
+  border_style = { path: :pixel, r: 100, g: 100, b: 100 }
+  args.outputs.primitives << [
+    { x: 0, y: 0, w: bottom_left[:x], h: 720 }.sprite!(border_style),
+    { x: bottom_left[:x], y: 0, w: 1280, h: bottom_left[:y] }.sprite!(border_style),
+    { x: top_right[:x], y: 0, w: 1280 - top_right[:x], h: 720 }.sprite!(border_style),
+    { x: bottom_left[:x], y: top_right[:y], w: 1280, h: 720 - top_right[:y] }.sprite!(border_style),
+  ]
 end
 
 def render_enemies(args)
