@@ -36,13 +36,15 @@ def load_stage
 end
 
 def game_process_inputs(args)
-  CameraMovement.control_camera(
-    mouse: args.inputs.mouse,
-    camera: args.state.camera,
-    stage: args.state.stage
-  )
-  control_launcher(args)
-  StageEditor.handle_onoff(args)
+  unless Base.dead?(args.state.base)
+    CameraMovement.control_camera(
+      mouse: args.inputs.mouse,
+      camera: args.state.camera,
+      stage: args.state.stage
+    )
+    control_launcher(args)
+    StageEditor.handle_onoff(args)
+  end
   $gtk.reset if args.inputs.keyboard.key_up.r
 end
 
@@ -84,6 +86,8 @@ def build_turret(args)
 end
 
 def game_update(args)
+  return if Base.dead?(args.state.base)
+
   spawn_spikey(args) if args.tick_count.mod_zero? 60
   move_enemies(args)
   handle_enemy_vs_base_collisions(args)
