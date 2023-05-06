@@ -109,21 +109,20 @@ end
 
 def spawn_spikey(args)
   direction = %i[top right bottom left].sample
-  stage_w = args.state.stage[:w]
-  stage_h = args.state.stage[:h]
+  bounds = stage_bounds(args.state.stage)
   case direction
   when :top
-    x = -stage_w / 2 + rand(stage_w)
-    y = stage_w / 2
+    x = bounds.left + rand(bounds.w)
+    y = bounds.top
   when :right
-    x = stage_w / 2
-    y = -stage_h / 2 + rand(stage_h)
+    x = bounds.right
+    y = bounds.bottom + rand(bounds.h)
   when :bottom
-    x = -stage_w / 2 + rand(stage_w)
-    y = -stage_h / 2
+    x = bounds.left + rand(bounds.w)
+    y = bounds.bottom
   when :left
-    x = -stage_w / 2
-    y = -stage_h / 2 + rand(stage_h)
+    x = bounds.left
+    y = bounds.bottom + rand(bounds.h)
   end
 
   args.state.enemies << {
@@ -192,6 +191,10 @@ def update_launched_turrets args
   end
 end
 
+def stage_bounds(stage)
+  { x: -stage[:w] / 2, y: -stage[:h] / 2, w: stage[:w], h: stage[:h] }
+end
+
 def game_over?(args)
   Base.dead?(args.state.base) # || winning condition
 end
@@ -228,14 +231,13 @@ end
 def render_stage_border(args)
   stage = args.state.stage
   camera = args.state.camera
-  bottom_left = Camera.transform! camera, { x: -stage[:w] / 2, y: -stage[:h] / 2, w: 0, h: 0 }
-  top_right = Camera.transform! camera, { x: stage[:w] / 2, y: stage[:h] / 2, w: 0, h: 0 }
+  bounds_on_screen = Camera.transform! camera, stage_bounds(stage)
   border_style = { path: :pixel, r: 100, g: 100, b: 100 }
   args.outputs.primitives << [
-    { x: 0, y: 0, w: bottom_left[:x], h: 720 }.sprite!(border_style),
-    { x: bottom_left[:x], y: 0, w: 1280, h: bottom_left[:y] }.sprite!(border_style),
-    { x: top_right[:x], y: 0, w: 1280 - top_right[:x], h: 720 }.sprite!(border_style),
-    { x: bottom_left[:x], y: top_right[:y], w: 1280, h: 720 - top_right[:y] }.sprite!(border_style),
+    { x: 0, y: 0, w: bounds_on_screen.left, h: 720 }.sprite!(border_style),
+    { x: bounds_on_screen.left, y: 0, w: 1280, h: bounds_on_screen.bottom }.sprite!(border_style),
+    { x: bounds_on_screen.right, y: 0, w: 1280 - bounds_on_screen.right, h: 720 }.sprite!(border_style),
+    { x: bounds_on_screen.left, y: bounds_on_screen.top, w: 1280, h: 720 - bounds_on_screen.top }.sprite!(border_style)
   ]
 end
 

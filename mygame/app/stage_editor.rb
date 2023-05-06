@@ -131,9 +131,9 @@ module StageEditor
     end
 
     def clamp_to_stage(args, wall)
-      stage = args.state.stage
-      wall[:x] = wall[:x].clamp(-(stage[:w] / 2), (stage[:w] / 2) - wall[:w])
-      wall[:y] = wall[:y].clamp(-(stage[:w] / 2), (stage[:h] / 2) - wall[:h])
+      bounds = stage_bounds(args.state.stage)
+      wall[:x] = wall[:x].clamp(bounds.left, bounds.right - wall[:w])
+      wall[:y] = wall[:y].clamp(bounds.bottom, bounds.top - wall[:h])
     end
 
     def render(args)

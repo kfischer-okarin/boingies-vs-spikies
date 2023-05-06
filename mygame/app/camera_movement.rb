@@ -39,8 +39,9 @@ module CameraMovement
     end
 
     def keep_camera_in_stage_bounds(camera, stage)
-      camera[:center_x] = camera[:center_x].clamp(-stage[:w] / 2, stage[:w] / 2)
-      camera[:center_y] = camera[:center_y].clamp(-stage[:h] / 2, stage[:h] / 2)
+      bounds = stage_bounds(stage)
+      camera[:center_x] = camera[:center_x].clamp(bounds.left, bounds.right)
+      camera[:center_y] = camera[:center_y].clamp(bounds.bottom, bounds.top)
     end
   end
 end
