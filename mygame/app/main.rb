@@ -90,19 +90,21 @@ end
 
 def spawn_spikey(args)
   direction = %i[top right bottom left].sample
+  stage_w = args.state.stage[:w]
+  stage_h = args.state.stage[:h]
   case direction
   when :top
-    x = -1200 + rand(1200)
-    y = 1200
+    x = -stage_w / 2 + rand(stage_w)
+    y = stage_w / 2
   when :right
-    x = 1200
-    y = -1200 + rand(1200)
+    x = stage_w / 2
+    y = -stage_h / 2 + rand(stage_h)
   when :bottom
-    x = -1200 + rand(1200)
-    y = -1200
+    x = -stage_w / 2 + rand(stage_w)
+    y = -stage_h / 2
   when :left
-    x = -1200
-    y = -1200 + rand(1200)
+    x = -stage_w / 2
+    y = -stage_h / 2 + rand(stage_h)
   end
 
   args.state.enemies << {
