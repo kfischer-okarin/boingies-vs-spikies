@@ -35,10 +35,17 @@ def tick_turret args
     end
   end
 
+  #yeah I was being lazy maybe projectiles should have there own update
   args.state.projectiles.reject!{|shot| shot.pen < 0 || shot.life_time < 0}
 
   args.state.projectiles.each do |shot|
     shot.life_time -=1
+
+    if shot.target != nil
+      shot.target_x = shot.target.x
+      shot.target_y = shot.target.y
+    end
+
     to_target = Matrix.vec2(
       shot[:target_x] - shot[:x],
       shot[:target_y] - shot[:y]
@@ -48,6 +55,8 @@ def tick_turret args
     shot[:x] += to_target[:x] * speed
     shot[:y] += to_target[:y] * speed
 
+    #the intent here is, if its really close to the target xy it'll just stop and clear itself
+    #doesn't work in its current state
     if (shot.x - to_target.x).abs < (2*speed) && (shot.y - to_target.y).abs < (2*speed)
       shot.life_time = -1
     end
@@ -90,7 +99,7 @@ def make_projectile target, turret
     w:10,
     h:10,
     speed:turret.shotSpeed,
-    #this will change so don't bother refactoring it XD
+    #this will change so don't bother refactoring it XD cuz we will have sprites right??
     path: :pixel,
     r: 100,
     b:0,
@@ -99,7 +108,8 @@ def make_projectile target, turret
     target_y: ty,
     dmg: turret.dmg,
     pen:0,
-    life_time: turret.life_time
+    life_time: turret.life_time,
+    target: target
   }
 end
 
@@ -111,14 +121,22 @@ def make_dmg_popup shot
   x = shot.x
   y = shot.y
   txt = shot.dmg
+  r = rand(255)
+  g = rand(255)
+  b = rand(255)
+
+  size_px = 40 + rand(20)
   {
     x:x,
     y:y,
     text:txt,
     dx:dx,
     dy:dy,
-    life_time: 300,
-    size_px: 40
+    life_time: 200,
+    size_px: size_px,
+    r:r,
+    g:g,
+    b:b
   }
 end
 
@@ -127,7 +145,6 @@ def update_dmg_popups args
     lab.x += lab.dx
     lab.y += lab.dy
     lab.life_time -=1
-    #lab.size_px = 40
   end
 
   args.state.dmg_popups.reject!{|lab| lab.life_time<0}
