@@ -256,10 +256,10 @@ end
 def render_game_over(args)
   args.outputs.primitives << [
     {
-      x:0, y:0,
-      w:1280, h:720,
+      x: 0, y: 0,
+      w: 1280, h: 720,
       r: 255, g: 255, b: 255,
-      a: 180 + Math.sin(args.state.tick_count/100) * 75,
+      a: 180 + Math.sin(args.state.tick_count / 100) * 75,
       path: :pixel
     }.to_sprite,
     {
