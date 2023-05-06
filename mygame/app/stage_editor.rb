@@ -18,7 +18,11 @@ module StageEditor
     private
 
     def process_inputs(args)
-      CameraMovement.control_camera(mouse: args.inputs.mouse, camera: args.state.camera)
+      CameraMovement.control_camera(
+        mouse: args.inputs.mouse,
+        camera: args.state.camera,
+        stage: args.state.stage
+      )
       handle_onoff(args)
       handle_selection(args)
       if args.state.stage_editor[:selected]
@@ -54,6 +58,7 @@ module StageEditor
 
       selected = args.state.stage_editor[:selected]
       selected[:w], selected[:h] = selected[:h], selected[:w]
+      clamp_to_stage(args, selected)
     end
 
     def handle_size_change(args)
@@ -70,6 +75,8 @@ module StageEditor
         selected[long_dimension] -= 10
         selected[long_dimension] = min_length if selected[long_dimension] < min_length
       end
+
+      clamp_to_stage(args, selected)
     end
 
     def handle_drag(args)
@@ -85,6 +92,7 @@ module StageEditor
           selected[:y] = dragged[:dragged_start_y] + (mouse_position[:y] - dragged[:mouse_start_y])
           selected[:x] = selected[:x].idiv(10) * 10
           selected[:y] = selected[:y].idiv(10) * 10
+          clamp_to_stage(args, selected)
         else
           stage_editor[:dragged] = nil
         end
@@ -112,6 +120,7 @@ module StageEditor
       }
       args.state.stage[:walls] << new_wall
       args.state.stage_editor[:selected] = new_wall
+      clamp_to_stage(args, new_wall)
     end
 
     def handle_save(args)
@@ -119,6 +128,12 @@ module StageEditor
 
       $gtk.serialize_state 'stage', args.state.stage
       $gtk.notify! 'Saved!'
+    end
+
+    def clamp_to_stage(args, wall)
+      stage = args.state.stage
+      wall[:x] = wall[:x].clamp(-(stage[:w] / 2), (stage[:w] / 2) - wall[:w])
+      wall[:y] = wall[:y].clamp(-(stage[:w] / 2), (stage[:h] / 2) - wall[:h])
     end
 
     def render(args)
@@ -156,15 +171,6 @@ module StageEditor
     def mouse_in_world(args)
       mouse_point = { x: args.inputs.mouse.x, y: args.inputs.mouse.y, w: 0, h: 0 }
       Camera.to_world_coordinates!(args.state.camera, mouse_point)
-    end
-
-    def fat_border(rect, line_width:, **values)
-      [
-        { x: rect.x - line_width, y: rect.y - line_width, w: rect.w + line_width * 2, h: line_width, path: :pixel }.sprite!(values),
-        { x: rect.x - line_width, y: rect.y - line_width, w: line_width, h: rect.h + line_width * 2, path: :pixel }.sprite!(values),
-        { x: rect.x - line_width, y: rect.y + rect.h, w: rect.w + line_width * 2, h: line_width, path: :pixel }.sprite!(values),
-        { x: rect.x + rect.w, y: rect.y - line_width, w: line_width, h: rect.h + line_width * 2, path: :pixel }.sprite!(values)
-      ]
     end
   end
 end

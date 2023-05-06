@@ -36,7 +36,11 @@ def load_stage
 end
 
 def game_process_inputs(args)
-  CameraMovement.control_camera(mouse: args.inputs.mouse, camera: args.state.camera)
+  CameraMovement.control_camera(
+    mouse: args.inputs.mouse,
+    camera: args.state.camera,
+    stage: args.state.stage
+  )
   control_launcher(args)
   StageEditor.handle_onoff(args)
   $gtk.reset if args.inputs.keyboard.key_up.r
@@ -90,19 +94,21 @@ end
 
 def spawn_spikey(args)
   direction = %i[top right bottom left].sample
+  stage_w = args.state.stage[:w]
+  stage_h = args.state.stage[:h]
   case direction
   when :top
-    x = rand * -1200 - 1
-    y = 1200
+    x = -stage_w / 2 + rand(stage_w)
+    y = stage_w / 2
   when :right
-    x = 1200
-    y = rand *-1200 - 1
+    x = stage_w / 2
+    y = -stage_h / 2 + rand(stage_h)
   when :bottom
-    x = rand * -1200 - 1
-    y = -1200
+    x = -stage_w / 2 + rand(stage_w)
+    y = -stage_h / 2
   when :left
-    x = -1200
-    y = rand * -1200 - 1
+    x = -stage_w / 2
+    y = -stage_h / 2 + rand(stage_h)
   end
 
   args.state.enemies << {
@@ -196,6 +202,21 @@ def render_stage(args)
   args.outputs.primitives << stage[:walls].map { |wall|
     Camera.transform! camera, wall.to_sprite(path: :pixel, r: 0, g: 0, b: 0)
   }
+  render_stage_border(args)
+end
+
+def render_stage_border(args)
+  stage = args.state.stage
+  camera = args.state.camera
+  bottom_left = Camera.transform! camera, { x: -stage[:w] / 2, y: -stage[:h] / 2, w: 0, h: 0 }
+  top_right = Camera.transform! camera, { x: stage[:w] / 2, y: stage[:h] / 2, w: 0, h: 0 }
+  border_style = { path: :pixel, r: 100, g: 100, b: 100 }
+  args.outputs.primitives << [
+    { x: 0, y: 0, w: bottom_left[:x], h: 720 }.sprite!(border_style),
+    { x: bottom_left[:x], y: 0, w: 1280, h: bottom_left[:y] }.sprite!(border_style),
+    { x: top_right[:x], y: 0, w: 1280 - top_right[:x], h: 720 }.sprite!(border_style),
+    { x: bottom_left[:x], y: top_right[:y], w: 1280, h: 720 - top_right[:y] }.sprite!(border_style),
+  ]
 end
 
 def render_enemies(args)
@@ -259,4 +280,14 @@ def render_game_over(args)
     }.to_label
   ]
 end
+
+def fat_border(rect, line_width:, **values)
+  [
+    { x: rect.x - line_width, y: rect.y - line_width, w: rect.w + line_width * 2, h: line_width, path: :pixel }.sprite!(values),
+    { x: rect.x - line_width, y: rect.y - line_width, w: line_width, h: rect.h + line_width * 2, path: :pixel }.sprite!(values),
+    { x: rect.x - line_width, y: rect.y + rect.h, w: rect.w + line_width * 2, h: line_width, path: :pixel }.sprite!(values),
+    { x: rect.x + rect.w, y: rect.y - line_width, w: line_width, h: rect.h + line_width * 2, path: :pixel }.sprite!(values)
+  ]
+end
+
 $gtk.reset

@@ -1,8 +1,9 @@
 module CameraMovement
   class << self
-    def control_camera(mouse:, camera:)
+    def control_camera(mouse:, camera:, stage:)
       move_camera_with_mouse(mouse, camera)
       zoom_camera_with_mouse_wheel(mouse, camera)
+      keep_camera_in_stage_bounds(camera, stage)
     end
 
     private
@@ -35,6 +36,11 @@ module CameraMovement
 
       camera[:zoom] += mouse.wheel.y * 0.1 * camera[:zoom]
       camera[:zoom] = camera[:zoom].clamp(0.25, 4)
+    end
+
+    def keep_camera_in_stage_bounds(camera, stage)
+      camera[:center_x] = camera[:center_x].clamp(-stage[:w] / 2, stage[:w] / 2)
+      camera[:center_y] = camera[:center_y].clamp(-stage[:h] / 2, stage[:h] / 2)
     end
   end
 end
