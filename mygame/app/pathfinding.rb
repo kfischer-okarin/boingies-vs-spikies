@@ -1,7 +1,7 @@
 module Pathfinding
   class << self
-    def build_navigation_grid(stage, spacing: 50)
-      grid = RectGrid.build(stage_bounds(stage), spacing: spacing)
+    def build_navigation_grid(stage, spacing: 50, grid_type: RectGrid)
+      grid = grid_type.build(stage_bounds(stage), spacing: spacing)
 
       wall_points = {}
       unwalkable_distance = 25
@@ -12,7 +12,7 @@ module Pathfinding
           w: wall[:w] + (unwalkable_distance * 2),
           h: wall[:h] + (unwalkable_distance * 2)
         }
-        RectGrid.grid_points_in_rect(grid, unwalkable_area).each do |wall_point|
+        grid_type.grid_points_in_rect(grid, unwalkable_area).each do |wall_point|
           wall_points[wall_point] = true
         end
       end
@@ -20,7 +20,7 @@ module Pathfinding
       costs = {}
 
       # Basic cost
-      start = stage[:base_position]
+      start = grid_type.grid_point(grid, stage[:base_position])
       frontier = [start]
       came_from = {}
       cost_so_far = {}
@@ -30,7 +30,7 @@ module Pathfinding
 
       while frontier.any?
         current = frontier.shift
-        RectGrid.neighbors(grid, current).each do |neighbor|
+        grid_type.neighbors(grid, current).each do |neighbor|
           new_cost = cost_so_far[current] + 10
           next if wall_points[neighbor] || (cost_so_far[neighbor] && new_cost >= cost_so_far[neighbor])
 
@@ -54,7 +54,7 @@ module Pathfinding
 
       while frontier.any?
         current = frontier.shift
-        RectGrid.neighbors(grid, current).each do |neighbor|
+        grid_type.neighbors(grid, current).each do |neighbor|
           new_cost = cost_so_far[current] - 1
           next if (cost_so_far[neighbor] && new_cost <= cost_so_far[neighbor]) || new_cost <= 0
 
@@ -73,17 +73,19 @@ module Pathfinding
       {
         base_position: stage[:base_position],
         grid: grid,
-        cost_so_far: costs
+        cost_so_far: costs,
+        type: grid_type
       }
     end
 
     def direction_to_base(navigation_grid, position)
-      grid_point = RectGrid.grid_point(navigation_grid[:grid], position)
-      min_cost_neighbor = RectGrid.neighbors(navigation_grid[:grid], grid_point).min_by { |neighbor|
+      grid_type = navigation_grid[:type]
+      grid_point = grid_type.grid_point(navigation_grid[:grid], position)
+      min_cost_neighbor = grid_type.neighbors(navigation_grid[:grid], grid_point).min_by { |neighbor|
         navigation_grid[:cost_so_far][neighbor] || 100_000_000
       }
 
-      next_point_in_world = RectGrid.world_coordinates(navigation_grid[:grid], min_cost_neighbor)
+      next_point_in_world = grid_type.world_coordinates(navigation_grid[:grid], min_cost_neighbor)
 
       to_base = Matrix.vec2(
         next_point_in_world[:x] - position[:x],

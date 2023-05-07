@@ -337,8 +337,9 @@ def render_debug_info(args)
   camera = args.state.camera
   grid = args.state.navigation_grid[:grid]
   cost_so_far = args.state.navigation_grid[:cost_so_far]
+  grid_type = args.state.navigation_grid[:type]
   cost_so_far.each_key do |point|
-    world_point = Pathfinding::RectGrid.world_coordinates grid, point
+    world_point = grid_type.world_coordinates grid, point
     point_on_screen = Camera.transform camera, world_point
     args.outputs.primitives << point_on_screen.to_label(
       text: cost_so_far[point].to_s, r: 255, g: 0, b: 0, size_px: 20 * camera[:zoom], alignment_enum: 2
