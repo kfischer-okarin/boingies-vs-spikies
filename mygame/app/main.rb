@@ -152,11 +152,15 @@ end
 
 def move_enemies(args)
   args.state.enemies.each do |enemy|
-    to_base = Pathfinding.direction_to_base(args.state.navigation_grid, enemy)
-    speed = 2
-    enemy[:x] += to_base[:x] * speed
-    enemy[:y] += to_base[:y] * speed
+    move_enemy(args, enemy)
   end
+end
+
+def move_enemy(args, enemy)
+  to_base = Pathfinding.direction_to_base(args.state.navigation_grid, enemy)
+  speed = 2
+  enemy[:x] += to_base[:x] * speed
+  enemy[:y] += to_base[:y] * speed
 end
 
 def handle_dead_enemies(args)
