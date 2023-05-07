@@ -1,6 +1,8 @@
 require "app/base.rb"
 require "app/camera.rb"
 require "app/camera_movement.rb"
+require "app/turret.rb"
+require "app/essence.rb"
 require "app/stage_editor.rb"
 
 def tick(args)
@@ -30,6 +32,12 @@ def setup(args)
   args.state.base = Base.build
   args.state.launcher = {state: :idle, power: 0, direction: nil}
   args.state.launched_turrets = []
+  args.state.stationary_turrets = []
+  args.state.projectiles = []
+
+  args.state.dmg_popups = []
+  args.state.escessence_drops = []
+  args.state.essence_held = 0
 end
 
 def load_stage
@@ -87,7 +95,10 @@ end
 def build_turret(args)
   p = args.state.base
   launcher = args.state.launcher
-  {x: p.x, y: p.y, w: 20, h: 20, dx: launcher[:direction].x, dy: launcher[:direction].y, pow: launcher[:power] / 5, logical_x: p.x, logical_y: p.y}
+  options = [:bigRoller, :pdc, :stickers]
+  #CD should be based on turret type
+  {x: p.x, y: p.y, w: 20, h: 20, dx: launcher[:direction].x, dy: launcher[:direction].y,
+    pow: launcher[:power] / 5, logical_x: p.x, logical_y: p.y, type: options[0], cd:60}
 end
 
 def handle_toggle_debug_info(args)
@@ -105,6 +116,9 @@ def game_update(args)
   handle_dead_enemies(args)
   update_launcher(args)
   update_launched_turrets(args)
+  tick_turret(args)
+  update_dmg_popups(args)
+  update_essence(args)
 end
 
 def spawn_spikey(args)
@@ -129,7 +143,8 @@ def spawn_spikey(args)
     x: x, y: y, w: 100, h: 100,
     anchor_x: 0.5, anchor_y: 0.5,
     health: 100,
-    type: :spikey_ball
+    type: :spikey_ball,
+    essence_amount: 10
   }
 end
 
@@ -178,6 +193,8 @@ def update_launcher(args)
 end
 
 def update_launched_turrets args
+  args.state.launched_turrets.reject!{|lau| lau.pow <=0}
+
   args.state.launched_turrets.each do |lau|
     lau.x += lau.dx * lau.pow
     lau.y += (lau.dy + Math.sin(args.tick_count)) * lau.pow
@@ -187,6 +204,8 @@ def update_launched_turrets args
     lau.pow -= 1
     if lau.pow <= 0
       lau.pow = 0
+      #eh symbols for turrets?
+      args.state.stationary_turrets << makeTurret(lau.logical_x, lau.logical_y, lau.cd, lau.type)
     end
   end
 end
@@ -207,6 +226,8 @@ def game_render(args)
   render_launcher_ui(args) if args.state.launcher[:state] == :charging
   render_game_over(args) if Base.dead?(args.state.base)
   render_debug_info(args) if args.state.show_debug_info
+  render_dmg_popups(args)
+  render_essence(args)
 end
 
 def render_base(args)
@@ -254,6 +275,14 @@ def render_turrets(args)
   camera = args.state.camera
   args.outputs.primitives << args.state.launched_turrets.map { |turret|
     Camera.transform! camera, turret.to_sprite(path: :pixel, r: 0, g: 0, b: 0)
+  }
+
+  args.outputs.primitives << args.state.stationary_turrets.map { |turret|
+    Camera.transform! camera, turret.to_sprite(path: :pixel, r: 0, g: 0, b: 200)
+  }
+
+  args.outputs.primitives << args.state.projectiles.map { |shot|
+    Camera.transform! camera, shot.to_sprite(path: :pixel)
   }
 end
 
