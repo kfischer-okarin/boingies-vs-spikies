@@ -159,4 +159,94 @@ module Pathfinding
     end
   end
 
+  module HexGrid
+    # This module uses axial coordinates as described here:
+    # https://www.redblobgames.com/grids/hexagons/#coordinates-axial
+    NEIGHBOR_OFFSETS = [
+      { q:  1, r:  0 },
+      { q:  1, r: -1 },
+      { q:  0, r: -1 },
+      { q: -1, r:  0 },
+      { q: -1, r:  1 },
+      { q:  0, r:  1 }
+    ]
+
+    SQRT_3 = Math.sqrt(3)
+
+    class << self
+      def build(bounds, spacing: 50)
+        {
+          bounds: bounds,
+          spacing: spacing
+        }
+      end
+
+      def neighbors(grid, point)
+        result = []
+        NEIGHBOR_OFFSETS.each do |offset|
+          neighbor = { q: point[:q] + offset[:q], r: point[:r] + offset[:r] }
+          neighbor_in_world = world_coordinates(grid, neighbor)
+          next unless neighbor_in_world.inside_rect? grid[:bounds]
+
+          result << neighbor
+        end
+        result
+      end
+
+      def world_coordinates(grid, grid_point)
+        {
+          x: grid[:spacing] * (3 / 2) * grid_point[:q],
+          y: grid[:spacing] * SQRT_3 * (grid_point[:r] + grid_point[:q] / 2),
+          # So it can work with intersect_rect?
+          w: 0,
+          h: 0
+        }
+      end
+
+      def grid_point(grid, world_coordinates)
+        q = ((2 / 3) * world_coordinates[:x]) / grid[:spacing]
+        r = ((-(1 / 3) * world_coordinates[:x]) + ((SQRT_3 / 3) * world_coordinates[:y])) / grid[:spacing]
+        s = 0 - q - r
+
+        rounded_q = q.round
+        rounded_r = r.round
+        rounded_s = s.round
+
+        q_diff = (rounded_q - q).abs
+        r_diff = (rounded_r - r).abs
+        s_diff = (rounded_s - s).abs
+
+        if q_diff > r_diff && q_diff > s_diff
+          rounded_q = 0 - rounded_r - rounded_s
+        elsif r_diff > s_diff
+          rounded_r = 0 - rounded_q - rounded_s
+        else
+          rounded_s = 0 - rounded_q - rounded_r
+        end
+
+        {
+          q: rounded_q,
+          r: rounded_r
+        }
+      end
+
+      def grid_points_in_rect(grid, rect)
+        result = []
+        # lock position to the grid to not miss any points because of rounding errors
+        bottom = world_coordinates(grid, grid_point(grid, { x: rect.left, y: rect.bottom }))
+        top = world_coordinates(grid, grid_point(grid, { x: rect.left, y: rect.top }))
+        while bottom.x <= rect.right
+          bottom_grid_point = grid_point(grid, bottom)
+          top_grid_point = grid_point(grid, top)
+          q = bottom_grid_point[:q]
+          (bottom_grid_point[:r]..top_grid_point[:r]).each do |r|
+            result << { q: q, r: r }
+          end
+          bottom.x += grid[:spacing] * (3 / 2)
+          top.x = bottom.x
+        end
+        result
+      end
+    end
+  end
 end

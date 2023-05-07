@@ -28,7 +28,7 @@ def setup(args)
   args.state.show_debug_info = false
   args.state.scene = :game
   args.state.stage = load_stage
-  args.state.navigation_grid = Pathfinding.build_navigation_grid(args.state.stage)
+  args.state.navigation_grid = Pathfinding.build_navigation_grid(args.state.stage, spacing: 30, grid_type: Pathfinding::HexGrid)
   args.state.enemies = []
   args.state.base = Base.build args.state.stage
   args.state.camera = Camera.build center_x: args.state.base[:x], center_y: args.state.base[:y]
