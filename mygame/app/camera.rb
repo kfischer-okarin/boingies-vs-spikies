@@ -14,19 +14,21 @@ module Camera
       zoom = camera[:zoom]
       camera_bottom_left_x = camera[:center_x] - (camera[:half_w] / zoom)
       camera_bottom_left_y = camera[:center_y] - (camera[:half_h] / zoom)
-      if rect.w && rect.h
+      rect.merge!(
+        x: (rect[:x] - camera_bottom_left_x) * zoom,
+        y: (rect[:y] - camera_bottom_left_y) * zoom
+      )
+      if rect[:w]
         rect.merge!(
-          x: (rect[:x] - camera_bottom_left_x) * zoom,
-          y: (rect[:y] - camera_bottom_left_y) * zoom,
           w: rect[:w] * zoom,
           h: rect[:h] * zoom
         )
-      elsif rect.size_px
+      elsif rect[:size_px]
         rect.merge!(
-          x: (rect[:x] - camera_bottom_left_x) * zoom,
-          y: (rect[:y] - camera_bottom_left_y) * zoom,
           size_px: rect[:size_px] * zoom
         )
+      else
+        rect
       end
     end
 

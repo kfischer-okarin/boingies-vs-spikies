@@ -1,11 +1,11 @@
 module Base
   class << self
-    def build
-      {
+    def build(stage)
+      stage[:base_position].merge(
         x: 0, y: 0, w: 200, h: 200,
         anchor_x: 0.5, anchor_y: 0.5,
         health: 100
-      }
+      )
     end
 
     def dead?(base)

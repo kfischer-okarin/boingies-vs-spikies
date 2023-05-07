@@ -1,6 +1,7 @@
 require "app/base.rb"
 require "app/camera.rb"
 require "app/camera_movement.rb"
+require "app/pathfinding.rb"
 require "app/turret.rb"
 require "app/essence.rb"
 require "app/stage_editor.rb"
@@ -27,9 +28,10 @@ def setup(args)
   args.state.show_debug_info = false
   args.state.scene = :game
   args.state.stage = load_stage
+  args.state.navigation_grid = Pathfinding.build_navigation_grid(args.state.stage, spacing: 30, grid_type: Pathfinding::HexGrid)
   args.state.enemies = []
-  args.state.camera = Camera.build
-  args.state.base = Base.build
+  args.state.base = Base.build args.state.stage
+  args.state.camera = Camera.build center_x: args.state.base[:x], center_y: args.state.base[:y]
   args.state.launcher = {state: :idle, power: 0, direction: nil}
   args.state.launched_turrets = []
   args.state.stationary_turrets = []
@@ -149,17 +151,16 @@ def spawn_spikey(args)
 end
 
 def move_enemies(args)
-  base = args.state.base
   args.state.enemies.each do |enemy|
-    to_base = Matrix.vec2(
-      base[:x] - enemy[:x],
-      base[:y] - enemy[:y]
-    )
-    Matrix.normalize! to_base
-    speed = 2
-    enemy[:x] += to_base[:x] * speed
-    enemy[:y] += to_base[:y] * speed
+    move_enemy(args, enemy)
   end
+end
+
+def move_enemy(args, enemy)
+  to_base = Pathfinding.direction_to_base(args.state.navigation_grid, enemy)
+  speed = 2
+  enemy[:x] += to_base[:x] * speed
+  enemy[:y] += to_base[:y] * speed
 end
 
 def handle_dead_enemies(args)

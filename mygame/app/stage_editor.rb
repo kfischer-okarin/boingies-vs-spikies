@@ -1,7 +1,11 @@
 module StageEditor
   class << self
     def start(args)
-      args.state.stage_editor = { selected: nil, dragged: nil }
+      args.state.stage_editor = {
+        mode: :walls,
+        selected: nil,
+        dragged: nil
+    }
     end
 
     def tick(args)
@@ -10,8 +14,15 @@ module StageEditor
     end
 
     def handle_onoff(args)
-      if args.inputs.keyboard.key_down.zero
-        args.state.scene = args.state.scene == :game ? :stage_editor : :game
+      return unless args.inputs.keyboard.key_down.zero
+
+      case args.state.scene
+      when :game
+        args.state.scene = :stage_editor
+        start(args)
+      when :stage_editor
+        args.state.scene = :game
+        args.state.navigation_grid = Pathfinding.build_navigation_grid(args.state.stage)
       end
     end
 
@@ -24,16 +35,20 @@ module StageEditor
         stage: args.state.stage
       )
       handle_onoff(args)
-      handle_selection(args)
-      if args.state.stage_editor[:selected]
-        handle_delete(args)
-        handle_rotate(args)
-        handle_size_change(args)
-        handle_drag(args)
-      else
-        handle_new_wall(args)
+      handle_change_mode(args)
+      case args.state.stage_editor[:mode]
+      when :walls
+        handle_selection(args)
+        if args.state.stage_editor[:selected]
+          handle_delete(args)
+          handle_rotate(args)
+          handle_size_change(args)
+          handle_drag(args)
+        else
+          handle_new_wall(args)
+        end
+        handle_save(args)
       end
-      handle_save(args)
     end
 
     def handle_selection(args)
@@ -130,6 +145,15 @@ module StageEditor
       $gtk.notify! 'Saved!'
     end
 
+    def handle_change_mode(args)
+      return unless args.inputs.keyboard.key_down.tab
+
+      stage_editor = args.state.stage_editor
+      modes = %i[walls nav_grid]
+      current_mode_index = modes.index stage_editor[:mode]
+      stage_editor[:mode] = modes[(current_mode_index + 1) % modes.length]
+    end
+
     def clamp_to_stage(args, wall)
       bounds = stage_bounds(args.state.stage)
       wall[:x] = wall[:x].clamp(bounds.left, bounds.right - wall[:w])
@@ -143,20 +167,35 @@ module StageEditor
       render_turrets(args)
 
       render_ui(args)
-      render_selection(args)
+      case args.state.stage_editor[:mode]
+      when :walls
+        render_selection(args)
+      when :nav_grid
+        render_nav_grid(args)
+        render_path_from_mouse(args)
+      end
     end
 
     def render_ui(args)
+      stage_editor = args.state.stage_editor
       args.outputs.primitives << {
         x: 1280, y: 720, text: 'STAGE EDITOR', size_enum: 10, alignment_enum: 2
       }.label!
-      state_editor = args.state.stage_editor
-      commands = ['(0) Back to game, (1) Save']
-      if state_editor[:selected]
-        commands << '(D)elete, (R)otate, (L)onger, (S)horter'
-      else
-        commands << '(N)ew wall'
+      args.outputs.primitives << {
+        x: 1280, y: 680, text: "Mode: #{stage_editor[:mode]}", size_enum: 6, alignment_enum: 2
+      }.label!
+      commands = ['(TAB) Change mode, (0) Back to game']
+      case stage_editor[:mode]
+      when :walls
+        commands << '(1) Save'
+        if stage_editor[:selected]
+          commands << '(D)elete, (R)otate, (L)onger, (S)horter'
+        else
+          commands << '(N)ew wall'
+        end
+      when :nav_grid
       end
+
       args.outputs.primitives << { x: 0, y: 25, text: commands.join(', ') }.label!
     end
 
@@ -166,6 +205,41 @@ module StageEditor
 
       rect_on_screen = Camera.transform(args.state.camera, selected)
       args.outputs.primitives << fat_border(rect_on_screen, line_width: 4, r: 255, g: 0, b: 0)
+    end
+
+    def render_nav_grid(args)
+      mouse_position = mouse_in_world(args)
+      grid = args.state.navigation_grid[:grid]
+      grid_type = args.state.navigation_grid[:type]
+
+      area = { x: mouse_position[:x] - 200, y: mouse_position[:y] - 200, w: 400, h: 400 }
+      grid_points = grid_type.grid_points_in_rect(grid, area)
+
+      camera = args.state.camera
+      cost_so_far = args.state.navigation_grid[:cost_so_far]
+      grid_points.each do |point|
+        world_point = grid_type.world_coordinates grid, point
+        point_on_screen = Camera.transform camera, world_point
+        args.outputs.primitives << point_on_screen.to_label(
+          text: cost_so_far[point].to_s, r: 255, g: 0, b: 0, size_px: 20 * camera[:zoom], alignment_enum: 2
+        )
+      end
+    end
+
+    def render_path_from_mouse(args)
+      position = mouse_in_world(args)
+      stage_bounds = stage_bounds(args.state.stage)
+      return unless position.inside_rect? stage_bounds
+
+      camera = args.state.camera
+      base = args.state.base
+      position_on_screen = Camera.transform camera, position
+      until position.intersect_rect? base
+        last_position_on_screen = position_on_screen
+        move_enemy(args, position)
+        position_on_screen = Camera.transform camera, position
+        args.outputs.primitives << last_position_on_screen.line!(x2: position_on_screen[:x], y2: position_on_screen[:y], r: 0, g: 0, b: 255)
+      end
     end
 
     def mouse_in_world(args)
