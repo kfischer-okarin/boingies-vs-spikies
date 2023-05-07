@@ -1,6 +1,7 @@
 require "app/base.rb"
 require "app/camera.rb"
 require "app/camera_movement.rb"
+require "app/pathfinding.rb"
 require "app/turret.rb"
 require "app/essence.rb"
 require "app/stage_editor.rb"
@@ -27,6 +28,7 @@ def setup(args)
   args.state.show_debug_info = false
   args.state.scene = :game
   args.state.stage = load_stage
+  args.state.navigation_grid = Pathfinding.build_navigation_grid(args.state.stage)
   args.state.enemies = []
   args.state.base = Base.build args.state.stage
   args.state.camera = Camera.build center_x: args.state.base[:x], center_y: args.state.base[:y]
@@ -149,13 +151,8 @@ def spawn_spikey(args)
 end
 
 def move_enemies(args)
-  base = args.state.base
   args.state.enemies.each do |enemy|
-    to_base = Matrix.vec2(
-      base[:x] - enemy[:x],
-      base[:y] - enemy[:y]
-    )
-    Matrix.normalize! to_base
+    to_base = Pathfinding.direction_to_base(args.state.navigation_grid, enemy)
     speed = 2
     enemy[:x] += to_base[:x] * speed
     enemy[:y] += to_base[:y] * speed
@@ -337,6 +334,16 @@ def render_debug_info(args)
     { x: 0, y: 690, w: 200, h: 30, r: 0, g: 0, b: 0, a: 128, path: :pixel }.sprite!,
     { x: 5, y: 715, text: "FPS: #{args.gtk.current_framerate.to_i}", r: 255, g: 255, b: 255 }.label!
   ]
+  camera = args.state.camera
+  grid = args.state.navigation_grid[:grid]
+  cost_so_far = args.state.navigation_grid[:cost_so_far]
+  cost_so_far.each_key do |point|
+    world_point = Pathfinding::RectGrid.world_coordinates grid, point
+    point_on_screen = Camera.transform camera, world_point
+    args.outputs.primitives << point_on_screen.to_label(
+      text: cost_so_far[point].to_s, r: 255, g: 0, b: 0, size_px: 20 * camera[:zoom], alignment_enum: 2
+    )
+  end
 end
 
 def fat_border(rect, line_width:, **values)
