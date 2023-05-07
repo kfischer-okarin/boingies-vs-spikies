@@ -10,8 +10,15 @@ module StageEditor
     end
 
     def handle_onoff(args)
-      if args.inputs.keyboard.key_down.zero
-        args.state.scene = args.state.scene == :game ? :stage_editor : :game
+      return unless args.inputs.keyboard.key_down.zero
+
+      case args.state.scene
+      when :game
+        args.state.scene = :stage_editor
+        start(args)
+      when :stage_editor
+        args.state.scene = :game
+        args.state.navigation_grid = Pathfinding.build_navigation_grid(args.state.stage)
       end
     end
 
