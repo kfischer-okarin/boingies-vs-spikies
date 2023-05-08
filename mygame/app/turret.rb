@@ -172,8 +172,9 @@ def circle_col obj1, obj2
 end
 
 def fuse_turret existing_turret, fusing_from
-  existing_turret.dmg += fusing_from.dmg
-  existing_turret.range *= 1.2
+  existing_turret.dmg += (fusing_from.dmg * 0.2)
+  existing_turret.range *= 1.05
   existing_turret.shotSpeed *= 1.1
+  existing_turret.maxCd *= 0.95
   existing_turret.life_time = existing_turret.range / existing_turret.shotSpeed
 end
