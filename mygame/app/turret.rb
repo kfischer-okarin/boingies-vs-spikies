@@ -15,6 +15,23 @@ def makeTurret x, y, cd, type
     range: range,
     life_time: life_time,
     fusion_range: 40
+  }.merge!( send("turret_stats_#{type}"))
+end
+
+def turret_stats_bigRoller
+  {
+    dmg: 40,
+    shotSpeed: 1,
+    range: 500
+  }
+end
+
+def turret_stats_pdc
+  {
+    dmg: 10,
+    shotSpeed: 3,
+    range: 300,
+    maxCd: 60
   }
 end
 
