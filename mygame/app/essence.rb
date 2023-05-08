@@ -4,15 +4,15 @@ def make_essence enemy
   x = enemy.x
   y = enemy.y
   ess = enemy.essence_amount
-    {
-    x:x,
-    y:y,
-    w:20,
-    h:20,
+  {
+    x: x,
+    y: y,
+    w: 20,
+    h: 20,
     amount: ess,
     speed: speed,
-    life_time:life_time,
-    max_life_time:life_time,
+    life_time: life_time,
+    max_life_time: life_time,
     angle: 45
   }
 end
@@ -33,9 +33,9 @@ def update_essence args
   args.state.escessence_drops.reject!{|ess| ess.life_time <= 0}
 
   args.state.escessence_drops.each do |ess|
-    ess.life_time -=1
+    ess.life_time -= 1
 
-    if ess.life_time < (ess.max_life_time/2)
+    if ess.life_time < (ess.max_life_time / 2)
       to_base = direction_between(ess, base)
       speed = ess.speed
       ess[:x] += to_base[:x] * speed
