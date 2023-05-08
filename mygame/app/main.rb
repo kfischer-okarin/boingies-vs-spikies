@@ -85,14 +85,8 @@ def control_launcher args
 end
 
 def calculate_launcher_direction(args, mouse)
-  # to get the correct direction vector
   base_on_screen = Camera.transform args.state.camera, args.state.base
-  direction = Matrix.vec2(
-    mouse.x - base_on_screen.x,
-    mouse.y - base_on_screen.y
-  )
-  Matrix.normalize! direction
-  direction
+  direction_between(base_on_screen, mouse)
 end
 
 def build_turret(args)
@@ -410,6 +404,12 @@ end
 
 def vel_from_angle(angle, speed)
   [speed * Math.cos(angle.to_radians), speed * Math.sin(angle.to_radians)]
+end
+
+def direction_between(from, to)
+  result = Matrix.vec2(to.x - from.x, to.y - from.y)
+  Matrix.normalize! result
+  result
 end
 
 def bounce(bullet, other)

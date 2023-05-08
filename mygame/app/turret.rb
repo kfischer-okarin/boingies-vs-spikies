@@ -42,15 +42,10 @@ def tick_turret args
     shot.life_time -=1
 
     if shot.target != nil && shot.homing == true
-      shot.target_x = shot.target.x
-      shot.target_y = shot.target.y
+      shot.target_position = { x: shot.target.x, y: shot.target.y }
     end
 
-    to_target = Matrix.vec2(
-      shot[:target_x] - shot[:x],
-      shot[:target_y] - shot[:y]
-    )
-    Matrix.normalize! to_target
+    to_target = direction_between(shot, shot.target_position)
     speed = shot.speed
     shot[:x] += to_target[:x] * speed
     shot[:y] += to_target[:y] * speed
@@ -108,8 +103,7 @@ def make_projectile target, turret
     r: 100,
     b:0,
     g:0,
-    target_x: tx,
-    target_y: ty,
+    target_position: { x: tx, y: ty },
     dmg: turret.dmg,
     pen:0,
     life_time: turret.life_time,

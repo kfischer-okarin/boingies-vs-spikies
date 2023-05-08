@@ -36,11 +36,7 @@ def update_essence args
     ess.life_time -=1
 
     if ess.life_time < (ess.max_life_time/2)
-      to_base = Matrix.vec2(
-        base[:x] - ess[:x],
-        base[:y] - ess[:y]
-      )
-      Matrix.normalize! to_base
+      to_base = direction_between(ess, base)
       speed = ess.speed
       ess[:x] += to_base[:x] * speed
       ess[:y] += to_base[:y] * speed
