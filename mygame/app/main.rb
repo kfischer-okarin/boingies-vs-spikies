@@ -75,7 +75,7 @@ def control_launcher args
     end
   when :charging
     launcher[:direction] = calculate_launcher_direction(args, m)
-    launcher[:angle] = rad_to_deg(calculate_launcher_dir_angle(args, m))
+    launcher[:angle] = angle_from_vector(launcher[:direction])
     if m.click
       args.state.launched_turrets << build_turret(args)
       launcher[:state] = :idle
@@ -93,17 +93,6 @@ def calculate_launcher_direction(args, mouse)
   )
   Matrix.normalize! direction
   direction
-end
-
-def calculate_launcher_dir_angle(args, mouse)
-  base_on_screen = Camera.transform args.state.camera, args.state.base
-  direction = Matrix.vec2(
-    mouse.x - base_on_screen.x,
-    mouse.y - base_on_screen.y
-  )
-
-  #Matrix.normalize! direction
-  angle = Math.atan2(direction.y, direction.x)
 end
 
 def build_turret(args)
@@ -414,25 +403,17 @@ def fat_border(rect, line_width:, **values)
   ]
 end
 
-#don't mind me just stealing code from exquisit corps
-# +angle+ is expected to be in degrees with 0 being facing right
-def deg_to_rad(deg)
-  deg * Math::PI / 180
-end
-
-def rad_to_deg(rad)
-  rad * 180 / Math::PI
+def angle_from_vector(vector)
+  Math.atan2(vector.y, vector.x).to_degrees
 end
 
 def vel_from_angle(angle, speed)
-  [speed * Math.cos(deg_to_rad(angle)), speed * Math.sin(deg_to_rad(angle))]
+  [speed * Math.cos(angle.to_radians), speed * Math.sin(angle.to_radians)]
 end
 
-
-
 def bounce(bullet, other)
-        vx,vy = vel_from_angle(bullet.angle, bullet.pow)
-        bx = bullet.logical_x - vx
+  vx,vy = vel_from_angle(bullet.angle, bullet.pow)
+  bx = bullet.logical_x - vx
         by = bullet.logical_y - vy
 
         #vertial wall hit
