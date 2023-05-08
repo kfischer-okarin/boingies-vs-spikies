@@ -241,18 +241,14 @@ end
 
 def collidable_stage_bounds(args)
   bounds = stage_bounds(args.state.stage)
-  puts "butts"
-
   pad = 100
 
-  left_collider  = {x: bounds.left - pad, y: bounds.bottom - pad, w: pad,            h: bounds.h + pad*2}
-  right_collider = {x: bounds.right,     y: bounds.bottom - pad, w: pad,            h: bounds.h + pad*2}
-  up_collider    = {x: bounds.left - pad, y: bounds.top,         w: bounds.w + pad*2, h: pad}
-  down_collider  = {x: bounds.left - pad, y: bounds.bottom - pad, w: bounds.w + pad*2, h: pad}
+  left_collider  = { x: bounds.left - pad, y: bounds.bottom - pad, w: pad,              h: bounds.h + pad*2}
+  right_collider = { x: bounds.right,      y: bounds.bottom - pad, w: pad,              h: bounds.h + pad*2}
+  up_collider    = { x: bounds.left - pad, y: bounds.top,          w: bounds.w + pad*2, h: pad}
+  down_collider  = { x: bounds.left - pad, y: bounds.bottom - pad, w: bounds.w + pad*2, h: pad}
 
-  [left_collider, right_collider, up_collider, down_collider]
-  args.state.ahhhhh = [left_collider,right_collider,up_collider,down_collider]
-  args.state.ahhhhh
+  args.state.ahhhhh = [left_collider, right_collider, up_collider, down_collider]
 end
 
 def stage_bounds(stage)
@@ -414,14 +410,14 @@ end
 def bounce(bullet, other)
   vx,vy = vel_from_angle(bullet.angle, bullet.pow)
   bx = bullet.logical_x - vx
-        by = bullet.logical_y - vy
+  by = bullet.logical_y - vy
 
-        #vertial wall hit
-        bullet.angle = 0 - bullet.angle if  by + bullet.h <= other.y ||
-        by >= other.y+ other.h
-        #horizontal wall hit
-        bullet.angle = 180 - bullet.angle if bx + bullet.w <= other.x ||
-        bx >= other.x+ other.w
-        [bx,by]
+  #vertial wall hit
+  bullet.angle = 0 - bullet.angle if  by + bullet.h <= other.y ||
+  by >= other.y+ other.h
+  #horizontal wall hit
+  bullet.angle = 180 - bullet.angle if bx + bullet.w <= other.x ||
+  bx >= other.x+ other.w
+  [bx,by]
 end
 $gtk.reset
