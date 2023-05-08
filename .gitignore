@@ -21,3 +21,4 @@ VERSION.txt
 .DS_Store
 Gemfile.lock
 vendor
+ffmpeg.exe
