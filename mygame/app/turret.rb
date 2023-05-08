@@ -97,6 +97,32 @@ def make_bigRoller_projectile target, turret
   tx = target.x + (target.w/2)
   ty = target.y + (target.h/2)
   enemies_hit = []
+  speed = turret.shotSpeed/2
+  {
+    x: turret.x,
+    y: turret.y,
+    w: 50,
+    h: 50,
+    speed: speed,
+    #this will change so don't bother refactoring it XD cuz we will have sprites right??
+    path: :pixel,
+    r: 100,
+    b: 0,
+    g: 0,
+    target_position: { x: tx, y: ty },
+    dmg: turret.dmg,
+    pen: 5,
+    life_time: turret.life_time,
+    target: target,
+    homing: true, # can be refactored later to be good
+    enemies_hit: enemies_hit
+  }
+end
+
+def make_pdc_projectile target, turret
+  tx = target.x + (target.w/2)
+  ty = target.y + (target.h/2)
+  enemies_hit = []
   {
     x: turret.x,
     y: turret.y,

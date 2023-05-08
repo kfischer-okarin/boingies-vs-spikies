@@ -41,6 +41,7 @@ def setup(args)
   args.state.escessence_drops = []
   args.state.essence_held = 0
   args.state.enemy_unique_id = 0
+  args.state.current_turret_type = 0
 end
 
 def load_stage
@@ -55,13 +56,30 @@ def game_process_inputs(args)
       stage: args.state.stage
     )
     control_launcher(args)
-
+    change_selected_turret(args)
     unless $gtk.production?
       StageEditor.handle_onoff(args)
       handle_toggle_debug_info(args)
     end
   end
   $gtk.reset if args.inputs.keyboard.key_up.r
+end
+
+def change_selected_turret(args)
+  k = args.inputs.keyboard
+
+  if k.key_down.one
+    args.state.current_turret_type -=1
+    args.state.current_turret_type = 0 if args.state.current_turret_type < 0
+  end
+  #this should be more dynamic with the actual options avaliable, currently only got 2 functioning
+  #see build turret for what these mean
+  if k.key_down.two
+    args.state.current_turret_type +=1
+    args.state.current_turret_type = 1 if args.state.current_turret_type > 1
+  end
+
+
 end
 
 def control_launcher args
@@ -93,13 +111,12 @@ end
 def build_turret(args)
   p = args.state.base
   launcher = args.state.launcher
-  puts launcher[:angle]
 
   #puts angle = Math.atan2(launcher.direction.y- (p.y+p.h/2), launcher.direction.x - (p.x+p.w/2))
   options = [:bigRoller, :pdc, :stickers]
   #CD should be based on turret type
   {x: p.x, y: p.y, w: 20, h: 20, dx: launcher[:direction].x, dy: launcher[:direction].y,
-    pow: launcher[:power] / 5, logical_x: p.x, logical_y: p.y, type: options[0], cd:60, angle: launcher[:angle]}
+    pow: launcher[:power] / 5, logical_x: p.x, logical_y: p.y, type: options[args.state.current_turret_type], cd:60, angle: launcher[:angle]}
 end
 
 def handle_toggle_debug_info(args)
