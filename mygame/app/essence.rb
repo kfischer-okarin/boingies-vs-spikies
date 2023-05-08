@@ -28,8 +28,7 @@ end
 
 def update_essence args
   base = args.state.base
-  mouse = StageEditor.mouse_in_world(args)
-
+  mouse = mouse_in_world(args)
 
   args.state.escessence_drops.reject!{|ess| ess.life_time <= 0}
 

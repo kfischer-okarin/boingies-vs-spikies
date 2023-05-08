@@ -390,6 +390,11 @@ def render_debug_info(args)
   ]
 end
 
+def mouse_in_world(args)
+  mouse_point = { x: args.inputs.mouse.x, y: args.inputs.mouse.y, w: 0, h: 0 }
+  Camera.to_world_coordinates!(args.state.camera, mouse_point)
+end
+
 def fat_border(rect, line_width:, **values)
   [
     { x: rect.x - line_width, y: rect.y - line_width, w: rect.w + line_width * 2, h: line_width, path: :pixel }.sprite!(values),
