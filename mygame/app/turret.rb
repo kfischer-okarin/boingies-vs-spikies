@@ -26,8 +26,7 @@ def tick_turret args
       args.state.enemies.each do |en|
         in_range = circle_to_point_col t, en
         if in_range
-          #now we do the shoot # would make use of turret type somehow
-          args.state.projectiles << make_projectile(en, t)
+          args.state.projectiles << send("make_#{t.type}_projectile", en, t)
           t.cd = 0
           break
         end
@@ -88,7 +87,7 @@ def circle_to_point_col cir, pt
   dis < cir.range
 end
 
-def make_projectile target, turret
+def make_bigRoller_projectile target, turret
   tx = target.x + (target.w/2)
   ty = target.y + (target.h/2)
   {
