@@ -228,7 +228,17 @@ def update_launched_turrets args
     if lau.pow <= 0
       lau.pow = 0
       #eh symbols for turrets?
-      args.state.stationary_turrets << makeTurret(lau.logical_x, lau.logical_y, lau.cd, lau.type)
+      potential_turret = makeTurret(lau.logical_x, lau.logical_y, lau.cd, lau.type)
+      fusion = false
+      args.state.stationary_turrets.each do |turret|
+        if potential_turret.type == turret.type && circle_col(potential_turret, turret) && fusion == false
+          fusion = true
+          fuse_turret(turret, potential_turret)
+        end
+      end
+      if fusion == false
+        args.state.stationary_turrets << potential_turret
+      end
     end
   end
 end
@@ -264,6 +274,7 @@ def game_render(args)
   render_dmg_popups(args)
   render_essence(args)
 
+  render_turret_debug(args) if args.state.show_debug_info
   render_stage_bounds_colliders(args)
 end
 
@@ -328,6 +339,17 @@ def render_turrets(args)
 
   args.outputs.primitives << args.state.projectiles.map { |shot|
     Camera.transform! camera, shot.to_sprite(path: :pixel)
+  }
+end
+
+def render_turret_debug(args)
+  camera = args.state.camera
+  args.outputs.primitives << args.state.stationary_turrets.map { |turret|
+    Camera.transform! camera, setup_circle(turret, turret.range)
+  }
+
+  args.outputs.primitives << args.state.stationary_turrets.map { |turret|
+    Camera.transform! camera, setup_circle(turret, turret.fusion_range).merge(r:200, g: 0)
   }
 end
 

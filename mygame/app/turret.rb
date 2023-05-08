@@ -13,7 +13,8 @@ def makeTurret x, y, cd, type
     shotSpeed: speed,
     type: type, # yet to be used but will be
     range: range,
-    life_time: life_time
+    life_time: life_time,
+    fusion_range: 40
   }
 end
 
@@ -150,4 +151,29 @@ end
 def render_dmg_popups args
   camera = args.state.camera
   args.outputs.labels << args.state.dmg_popups.map { |lab| Camera.transform camera, lab.to_label }
+end
+
+
+def setup_circle object, radius
+  obj_center_x = object.x + (object.w/2)
+  obj_center_y = object.y + (object.h/2)
+
+  x = obj_center_x - radius
+  y = obj_center_y - radius
+  r2 = radius * 2
+  {x: x, y: y, h: r2, w: r2, path:"sprites/circle_transparent.png", r: 0, g: 200, b: 0, a: 128, primitive_marker: :sprite,
+     centre:{x: obj_center_x, y: obj_center_y, radius:radius}}
+end
+
+
+def circle_col obj1, obj2
+  distance = Math.sqrt( ((obj1.x - obj2.x)**2) + ((obj1.y - obj2.y)**2) )
+  return distance < (obj1.fusion_range + obj2.fusion_range)
+end
+
+def fuse_turret existing_turret, fusing_from
+  existing_turret.dmg += fusing_from.dmg
+  existing_turret.range *= 1.2
+  existing_turret.shotSpeed *= 1.1
+  existing_turret.life_time = existing_turret.range / existing_turret.shotSpeed
 end
