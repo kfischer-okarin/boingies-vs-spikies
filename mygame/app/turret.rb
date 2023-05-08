@@ -9,7 +9,7 @@ def makeTurret x, y, cd, type
     h: 20,
     cd: 0,
     maxCd: cd,
-    dmg: 100,
+    dmg: 10,
     shotSpeed: speed,
     type: type, # yet to be used but will be
     range: range,
@@ -51,23 +51,28 @@ def tick_turret args
     shot[:y] += to_target[:y] * speed
 
     #the intent here is, if its really close to the target xy it'll just stop and clear itself
-    #doesn't work in its current state
-    if (shot.x - to_target.x).abs < (2*speed) && (shot.y - to_target.y).abs < (2*speed)
+    #doesn't work in its current state # STILL DOESN@T WORK :( SADNESS
+
+    if distance_between(shot, to_target) < (2*speed)
       shot.life_time = -1
     end
 
     args.state.enemies.each do |en|
       if shot.intersect_rect? en
-        en.health -= shot.dmg
-        args.state.dmg_popups << make_dmg_popup(shot)
+        unless shot.enemies_hit.include? en.unique_id
+          en.health -= shot.dmg
+          args.state.dmg_popups << make_dmg_popup(shot)
 
-        shot.pen -= 1
-        shot.r = 0
+          shot.pen -= 1
+          shot.r = 0
 
-        if en.health <= 0
-          args.state.escessence_drops << make_essence(en)
+          if en.health <= 0
+            args.state.escessence_drops << make_essence(en)
+          else
+            shot.enemies_hit << en.unique_id.dup
+            shot.homing = false
+          end
         end
-
       end
     end
   end
@@ -91,6 +96,7 @@ end
 def make_bigRoller_projectile target, turret
   tx = target.x + (target.w/2)
   ty = target.y + (target.h/2)
+  enemies_hit = []
   {
     x: turret.x,
     y: turret.y,
@@ -104,10 +110,11 @@ def make_bigRoller_projectile target, turret
     g: 0,
     target_position: { x: tx, y: ty },
     dmg: turret.dmg,
-    pen: 0,
+    pen: 5,
     life_time: turret.life_time,
     target: target,
-    homing: true # can be refactored later to be good
+    homing: true, # can be refactored later to be good
+    enemies_hit: enemies_hit
   }
 end
 
@@ -177,4 +184,9 @@ def fuse_turret existing_turret, fusing_from
   existing_turret.shotSpeed *= 1.1
   existing_turret.maxCd *= 0.95
   existing_turret.life_time = existing_turret.range / existing_turret.shotSpeed
+end
+
+
+def distance_between(obj1, obj2)
+  distance = Math.sqrt( ((obj1.x - obj2.x)**2) + ((obj1.y - obj2.y)**2) )
 end

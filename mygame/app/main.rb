@@ -40,6 +40,7 @@ def setup(args)
   args.state.dmg_popups = []
   args.state.escessence_drops = []
   args.state.essence_held = 0
+  args.state.enemy_unique_id = 0
 end
 
 def load_stage
@@ -144,8 +145,10 @@ def spawn_spikey(args)
     anchor_x: 0.5, anchor_y: 0.5,
     health: 100,
     type: :spikey_ball,
-    essence_amount: 10
+    essence_amount: 10,
+    unique_id: args.state.enemy_unique_id
   }
+  args.state.enemy_unique_id += 1
 end
 
 def move_enemies(args)
@@ -167,7 +170,7 @@ end
 
 def enemy_dead?(args, enemy)
   # for now die when enemy touches player area
-  enemy.health == 0
+  enemy.health <= 0
 end
 
 def handle_enemy_vs_base_collisions(args)
@@ -234,6 +237,7 @@ def update_launched_turrets args
         if potential_turret.type == turret.type && circle_col(potential_turret, turret) && fusion == false
           fusion = true
           fuse_turret(turret, potential_turret)
+          break;
         end
       end
       if fusion == false
@@ -275,7 +279,7 @@ def game_render(args)
   render_essence(args)
 
   render_turret_debug(args) if args.state.show_debug_info
-  render_stage_bounds_colliders(args)
+  render_stage_bounds_colliders(args) if args.state.show_debug_info
 end
 
 def render_base(args)
