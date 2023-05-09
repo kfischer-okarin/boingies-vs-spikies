@@ -29,14 +29,18 @@ module DamageNumbers
         h = definition[:h]
         render_target.width = w
         render_target.height = h
-        render_target.primitives << digit_base.to_label(
-          x: w / 2 + 3, y: size_px + y_offset - 3, text: digit.to_s,
-          r: 0, g: 0, b: 0
-        )
-        render_target.primitives << digit_base.to_label(
-          x: w / 2 - 2, y: size_px + y_offset, text: digit.to_s,
+
+        digit = digit_base.to_label(
+          x: (w / 2) - 2, y: size_px + y_offset, text: digit.to_s,
           r: 0xc3, g: 0x63, b: 0x34
         )
+        shadow = digit.merge(
+          x: digit[:x] + 5, y: digit[:y] - 3,
+          r: 0, g: 0, b: 0
+        )
+
+        render_target.primitives << shadow
+        render_target.primitives << digit
       end
     end
 
@@ -54,8 +58,7 @@ module DamageNumbers
         )
       }
 
-      x_offset = -(digit_sprites[0][:w] + (digit_sprites[1][:w] / 2))
-      sprite_x = x + x_offset
+      sprite_x = x + first_digit_offset(digit_sprites)
       digit_sprites.each_with_index do |digit_sprite, index|
         digit_sprite[:x] = sprite_x
         digit_sprite[:frames] = build_animation_frames(digit_sprite, index)
@@ -64,6 +67,12 @@ module DamageNumbers
       {
         digit_sprites: digit_sprites
       }
+    end
+
+    def first_digit_offset(digit_sprites)
+      total_width = digit_sprites.sum(&:w)
+      first_digit_width = digit_sprites.first.w
+      -(total_width / 2) + (first_digit_width / 2)
     end
 
     def build_animation_frames(digit_sprite, index)
