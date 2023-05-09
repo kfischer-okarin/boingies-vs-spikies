@@ -1,6 +1,7 @@
 require "app/base.rb"
 require "app/camera.rb"
 require "app/camera_movement.rb"
+require "app/damage_numbers.rb"
 require "app/pathfinding.rb"
 require "app/turret.rb"
 require "app/essence.rb"
@@ -42,6 +43,7 @@ def setup(args)
   args.state.essence_held = 0
   args.state.enemy_unique_id = 0
   args.state.current_turret_type = 0
+  DamageNumbers.setup(args)
 end
 
 def load_stage
