@@ -40,6 +40,29 @@ module DamageNumbers
       end
     end
 
+    def build_damage_number(x:, y:, amount:)
+      dx = (rand(2.0)-1) * (rand(2)+1)
+      dy = (rand(1.0)+1 )* (rand(2)+1)
+      txt = amount.to_s
+      r = rand(255)
+      g = rand(255)
+      b = rand(255)
+
+      size_px = 40 + rand(20)
+      {
+        x:x,
+        y:y,
+        text:txt,
+        dx:dx,
+        dy:dy,
+        life_time: 200,
+        size_px: size_px,
+        r:r,
+        g:g,
+        b:b
+      }
+    end
+
     # Used for previewing the generated sprites
     def debug_render_all(args)
       x = 100

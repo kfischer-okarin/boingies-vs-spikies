@@ -78,7 +78,7 @@ def tick_turret args
       if shot.intersect_rect? en
         unless shot.enemies_hit.include? en.unique_id
           en.health -= shot.dmg
-          args.state.dmg_popups << make_dmg_popup(shot)
+          args.state.dmg_popups << DamageNumbers.build_damage_number(x: shot.x, y: shot.y, amount: shot.dmg)
 
           shot.pen -= 1
           shot.r = 0
@@ -158,33 +158,6 @@ def make_pdc_projectile target, turret
     target: target,
     homing: true, # can be refactored later to be good
     enemies_hit: enemies_hit
-  }
-end
-
-#going to render these as labels for now but could be work putting them into RT's
-#for more interesting visual effects
-def make_dmg_popup shot
-  dx = (rand(2.0)-1) * (rand(2)+1)
-  dy = (rand(1.0)+1 )* (rand(2)+1)
-  x = shot.x
-  y = shot.y
-  txt = shot.dmg
-  r = rand(255)
-  g = rand(255)
-  b = rand(255)
-
-  size_px = 40 + rand(20)
-  {
-    x:x,
-    y:y,
-    text:txt,
-    dx:dx,
-    dy:dy,
-    life_time: 200,
-    size_px: size_px,
-    r:r,
-    g:g,
-    b:b
   }
 end
 
