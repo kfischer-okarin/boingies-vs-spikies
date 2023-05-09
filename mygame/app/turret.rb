@@ -78,7 +78,11 @@ def tick_turret args
       if shot.intersect_rect? en
         unless shot.enemies_hit.include? en.unique_id
           en.health -= shot.dmg
-          args.state.dmg_popups << DamageNumbers.build_damage_number(x: en.x, y: en.y + 30, amount: shot.dmg)
+          args.state.dmg_popups << DamageNumbers.build_damage_number(
+            x: (en.x + shot.x) / 2,
+            y: ((en.y + shot.y) / 2) + 50,
+            amount: shot.dmg
+          )
 
           shot.pen -= 1
           shot.r = 0
