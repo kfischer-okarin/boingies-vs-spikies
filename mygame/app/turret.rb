@@ -161,22 +161,6 @@ def make_pdc_projectile target, turret
   }
 end
 
-def update_dmg_popups args
-  args.state.dmg_popups.each do |lab|
-    lab.x += lab.dx
-    lab.y += lab.dy
-    lab.life_time -= 1
-  end
-
-  args.state.dmg_popups.reject! { |lab| lab.life_time < 0 }
-end
-
-def render_dmg_popups args
-  camera = args.state.camera
-  args.outputs.labels << args.state.dmg_popups.map { |lab| Camera.transform camera, lab.to_label }
-end
-
-
 def setup_circle object, radius
   obj_center_x = object.x + (object.w/2)
   obj_center_y = object.y + (object.h/2)

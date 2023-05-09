@@ -137,7 +137,7 @@ def game_update(args)
   update_launcher(args)
   update_launched_turrets(args)
   tick_turret(args)
-  update_dmg_popups(args)
+  DamageNumbers.update_all(args.state.dmg_popups)
   update_essence(args)
 end
 
@@ -294,7 +294,7 @@ def game_render(args)
   render_launcher_ui(args) if args.state.launcher[:state] == :charging
   render_game_over(args) if Base.dead?(args.state.base)
   render_debug_info(args) if args.state.show_debug_info
-  render_dmg_popups(args)
+  DamageNumbers.render_all(args, args.state.dmg_popups)
   render_essence(args)
 
   render_turret_debug(args) if args.state.show_debug_info

@@ -63,6 +63,21 @@ module DamageNumbers
       }
     end
 
+    def update_all(damage_numbers)
+      damage_numbers.each do |lab|
+        lab.x += lab.dx
+        lab.y += lab.dy
+        lab.life_time -= 1
+      end
+
+      damage_numbers.reject! { |lab| lab.life_time < 0 }
+    end
+
+    def render_all(args, damage_numbers)
+      camera = args.state.camera
+      args.outputs.labels << damage_numbers.map { |lab| Camera.transform camera, lab.to_label }
+    end
+
     # Used for previewing the generated sprites
     def debug_render_all(args)
       x = 100
