@@ -82,7 +82,8 @@ module DamageNumbers
             w: { from: 0, to: digit_sprite[:w] },
             h: { from: 0, to: digit_sprite[:h] }
           },
-          duration: 20
+          duration: 20,
+          easing: :smooth_stop_cube
         },
         {
           values: {
