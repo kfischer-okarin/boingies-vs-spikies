@@ -112,6 +112,8 @@ module DamageNumbers
     end
 
     def apply_animation_frame(hash, frame)
+      return unless frame[:values] # To support "empty frames" for delays
+
       frame[:values].each do |key, animation|
         lerp_value = Easing.ease(0, frame[:tick], frame[:duration], frame[:easing] || :identity)
         hash[key] = lerp_value.remap(0, 1, animation[:from], animation[:to])
