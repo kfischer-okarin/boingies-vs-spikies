@@ -40,6 +40,8 @@ def setup(args)
   args.state.dmg_popups = []
   args.state.escessence_drops = []
   args.state.essence_held = 0
+  args.state.enemy_unique_id = 0
+  args.state.current_turret_type = 0
 end
 
 def load_stage
@@ -54,13 +56,30 @@ def game_process_inputs(args)
       stage: args.state.stage
     )
     control_launcher(args)
-
+    change_selected_turret(args)
     unless $gtk.production?
       StageEditor.handle_onoff(args)
       handle_toggle_debug_info(args)
     end
   end
   $gtk.reset if args.inputs.keyboard.key_up.r
+end
+
+def change_selected_turret(args)
+  k = args.inputs.keyboard
+
+  if k.key_down.one
+    args.state.current_turret_type -=1
+    args.state.current_turret_type = 0 if args.state.current_turret_type < 0
+  end
+  #this should be more dynamic with the actual options avaliable, currently only got 2 functioning
+  #see build turret for what these mean
+  if k.key_down.two
+    args.state.current_turret_type +=1
+    args.state.current_turret_type = 1 if args.state.current_turret_type > 1
+  end
+
+
 end
 
 def control_launcher args
@@ -75,6 +94,7 @@ def control_launcher args
     end
   when :charging
     launcher[:direction] = calculate_launcher_direction(args, m)
+    launcher[:angle] = angle_from_vector(launcher[:direction])
     if m.click
       args.state.launched_turrets << build_turret(args)
       launcher[:state] = :idle
@@ -84,23 +104,19 @@ def control_launcher args
 end
 
 def calculate_launcher_direction(args, mouse)
-  # to get the correct direction vector
   base_on_screen = Camera.transform args.state.camera, args.state.base
-  direction = Matrix.vec2(
-    mouse.x - base_on_screen.x,
-    mouse.y - base_on_screen.y
-  )
-  Matrix.normalize! direction
-  direction
+  direction_between(base_on_screen, mouse)
 end
 
 def build_turret(args)
   p = args.state.base
   launcher = args.state.launcher
+
+  #puts angle = Math.atan2(launcher.direction.y- (p.y+p.h/2), launcher.direction.x - (p.x+p.w/2))
   options = [:bigRoller, :pdc, :stickers]
   #CD should be based on turret type
   {x: p.x, y: p.y, w: 20, h: 20, dx: launcher[:direction].x, dy: launcher[:direction].y,
-    pow: launcher[:power] / 5, logical_x: p.x, logical_y: p.y, type: options[0], cd:60}
+    pow: launcher[:power] / 5, logical_x: p.x, logical_y: p.y, type: options[args.state.current_turret_type], cd:60, angle: launcher[:angle]}
 end
 
 def handle_toggle_debug_info(args)
@@ -146,8 +162,10 @@ def spawn_spikey(args)
     anchor_x: 0.5, anchor_y: 0.5,
     health: 100,
     type: :spikey_ball,
-    essence_amount: 10
+    essence_amount: 10,
+    unique_id: args.state.enemy_unique_id
   }
+  args.state.enemy_unique_id += 1
 end
 
 def move_enemies(args)
@@ -169,7 +187,7 @@ end
 
 def enemy_dead?(args, enemy)
   # for now die when enemy touches player area
-  enemy.health == 0
+  enemy.health <= 0
 end
 
 def handle_enemy_vs_base_collisions(args)
@@ -196,19 +214,66 @@ end
 def update_launched_turrets args
   args.state.launched_turrets.reject!{|lau| lau.pow <=0}
 
-  args.state.launched_turrets.each do |lau|
-    lau.x += lau.dx * lau.pow
-    lau.y += (lau.dy + Math.sin(args.tick_count)) * lau.pow
 
-    lau.logical_x += lau.dx * lau.pow
-    lau.logical_y += lau.dy * lau.pow
+  butt = collidable_stage_bounds(args)
+
+  args.state.launched_turrets.each do |lau|
+    #yes this insantiy is just to ensure I can calc the wibble seperately XD
+    x_vel, y_vel = vel_from_angle(lau.angle, 1)
+    lau.x += x_vel * lau.pow
+    lau.y += (y_vel + Math.sin(args.tick_count)) * lau.pow
+    x_vel, y_vel = vel_from_angle(lau.angle, lau.pow)
+    #lau.x += lau.dx * lau.pow
+    #lau.y += (lau.dy + Math.sin(args.tick_count*2)) * lau.pow
+
+    lau.logical_x += x_vel #lau.dx * lau.pow
+    lau.logical_y += y_vel #lau.dy * lau.pow
+
+    args.state.stage.walls.each do |wall|
+      if lau.intersect_rect? wall
+        lau.logical_x, lau.logical_y = bounce(lau, wall)
+        lau.x, lau.y = lau.logical_x, lau.logical_y
+      end
+    end
+    butt = collidable_stage_bounds(args)
+    #stage = args.state.stage
+    butt.each do |wall|
+      if lau.intersect_rect? wall
+        lau.logical_x, lau.logical_y = bounce(lau, wall)
+        lau.x, lau.y = lau.logical_x, lau.logical_y
+      end
+    end
+
     lau.pow -= 1
     if lau.pow <= 0
       lau.pow = 0
       #eh symbols for turrets?
-      args.state.stationary_turrets << makeTurret(lau.logical_x, lau.logical_y, lau.cd, lau.type)
+      potential_turret = makeTurret(lau.logical_x, lau.logical_y, lau.cd, lau.type)
+      fusion = false
+      args.state.stationary_turrets.each do |turret|
+        if potential_turret.type == turret.type && circle_col(potential_turret, turret) && fusion == false
+          fusion = true
+          fuse_turret(turret, potential_turret)
+          break;
+        end
+      end
+      if fusion == false
+        args.state.stationary_turrets << potential_turret
+      end
     end
   end
+end
+
+def collidable_stage_bounds(args)
+  bounds = stage_bounds(args.state.stage)
+  pad = 100
+
+  left_collider  = { x: bounds.left - pad, y: bounds.bottom - pad, w: pad,              h: bounds.h + pad*2}
+  right_collider = { x: bounds.right,      y: bounds.bottom - pad, w: pad,              h: bounds.h + pad*2}
+  up_collider    = { x: bounds.left - pad, y: bounds.top,          w: bounds.w + pad*2, h: pad}
+  down_collider  = { x: bounds.left - pad, y: bounds.bottom - pad, w: bounds.w + pad*2, h: pad}
+
+  args.state.ahhhhh = [left_collider, right_collider, up_collider, down_collider]
 end
 
 def stage_bounds(stage)
@@ -229,6 +294,9 @@ def game_render(args)
   render_debug_info(args) if args.state.show_debug_info
   render_dmg_popups(args)
   render_essence(args)
+
+  render_turret_debug(args) if args.state.show_debug_info
+  render_stage_bounds_colliders(args) if args.state.show_debug_info
 end
 
 def render_base(args)
@@ -245,7 +313,7 @@ def render_stage(args)
   stage = args.state.stage
   camera = args.state.camera
   args.outputs.primitives << stage[:walls].map { |wall|
-    Camera.transform! camera, wall.to_sprite(path: :pixel, r: 0, g: 0, b: 0)
+    Camera.transform! camera, wall.to_sprite(path: :pixel, r: 255, g: 0, b: 0)
   }
   render_stage_border(args)
 end
@@ -262,6 +330,14 @@ def render_stage_border(args)
     { x: bounds_on_screen.left, y: bounds_on_screen.top, w: 1280, h: 720 - bounds_on_screen.top }.sprite!(border_style)
   ]
 end
+
+def render_stage_bounds_colliders(args)
+  camera = args.state.camera
+  args.outputs.primitives << collidable_stage_bounds(args).map { |turret|
+    Camera.transform! camera, turret.to_sprite(path: :pixel, r: 0, g: 200, b: 0)
+  }
+end
+
 
 def render_enemies(args)
   camera = args.state.camera
@@ -284,6 +360,17 @@ def render_turrets(args)
 
   args.outputs.primitives << args.state.projectiles.map { |shot|
     Camera.transform! camera, shot.to_sprite(path: :pixel)
+  }
+end
+
+def render_turret_debug(args)
+  camera = args.state.camera
+  args.outputs.primitives << args.state.stationary_turrets.map { |turret|
+    Camera.transform! camera, setup_circle(turret, turret.range)
+  }
+
+  args.outputs.primitives << args.state.stationary_turrets.map { |turret|
+    Camera.transform! camera, setup_circle(turret, turret.fusion_range).merge(r:200, g: 0)
   }
 end
 
@@ -340,6 +427,11 @@ def render_debug_info(args)
   ]
 end
 
+def mouse_in_world(args)
+  mouse_point = { x: args.inputs.mouse.x, y: args.inputs.mouse.y, w: 0, h: 0 }
+  Camera.to_world_coordinates!(args.state.camera, mouse_point)
+end
+
 def fat_border(rect, line_width:, **values)
   [
     { x: rect.x - line_width, y: rect.y - line_width, w: rect.w + line_width * 2, h: line_width, path: :pixel }.sprite!(values),
@@ -349,4 +441,31 @@ def fat_border(rect, line_width:, **values)
   ]
 end
 
+def angle_from_vector(vector)
+  Math.atan2(vector.y, vector.x).to_degrees
+end
+
+def vel_from_angle(angle, speed)
+  [speed * Math.cos(angle.to_radians), speed * Math.sin(angle.to_radians)]
+end
+
+def direction_between(from, to)
+  result = Matrix.vec2(to.x - from.x, to.y - from.y)
+  Matrix.normalize! result
+  result
+end
+
+def bounce(bullet, other)
+  vx,vy = vel_from_angle(bullet.angle, bullet.pow)
+  bx = bullet.logical_x - vx
+  by = bullet.logical_y - vy
+
+  #vertial wall hit
+  bullet.angle = 0 - bullet.angle if  by + bullet.h <= other.y ||
+  by >= other.y+ other.h
+  #horizontal wall hit
+  bullet.angle = 180 - bullet.angle if bx + bullet.w <= other.x ||
+  bx >= other.x+ other.w
+  [bx,by]
+end
 $gtk.reset

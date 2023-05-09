@@ -241,10 +241,5 @@ module StageEditor
         args.outputs.primitives << last_position_on_screen.line!(x2: position_on_screen[:x], y2: position_on_screen[:y], r: 0, g: 0, b: 255)
       end
     end
-
-    def mouse_in_world(args)
-      mouse_point = { x: args.inputs.mouse.x, y: args.inputs.mouse.y, w: 0, h: 0 }
-      Camera.to_world_coordinates!(args.state.camera, mouse_point)
-    end
   end
 end

@@ -87,12 +87,7 @@ module Pathfinding
 
       next_point_in_world = grid_type.world_coordinates(navigation_grid[:grid], min_cost_neighbor)
 
-      to_base = Matrix.vec2(
-        next_point_in_world[:x] - position[:x],
-        next_point_in_world[:y] - position[:y]
-      )
-      Matrix.normalize! to_base
-      to_base
+      direction_between(position, next_point_in_world)
     end
   end
 
