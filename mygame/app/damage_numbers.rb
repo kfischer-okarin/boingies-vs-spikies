@@ -40,33 +40,32 @@ module DamageNumbers
       end
     end
 
-    def build_damage_number(x:, y:, amount:)
-      dx = (rand(2.0)-1) * (rand(2)+1)
-      dy = (rand(1.0)+1 )* (rand(2)+1)
-      txt = amount.to_s
-      r = rand(255)
-      g = rand(255)
-      b = rand(255)
+    RENDER_SCALE = 0.5
 
-      size_px = 40 + rand(20)
+    def build_damage_number(x:, y:, amount:)
+      digit_sprites = amount.to_s.chars.map { |digit|
+        digit_sprite_base = DIGITS[digit.to_i]
+        digit_sprite_base.to_sprite(
+          y: y,
+          w: digit_sprite_base[:w] * RENDER_SCALE,
+          h: digit_sprite_base[:h] * RENDER_SCALE
+        )
+      }
+      x_offset = -(digit_sprites[0][:w] + (digit_sprites[1][:w] / 2))
+      sprite_x = x + x_offset
+      digit_sprites.each do |digit_sprite|
+        digit_sprite[:x] = sprite_x
+        sprite_x += digit_sprite[:w]
+      end
       {
-        x:x,
-        y:y,
-        text:txt,
-        dx:dx,
-        dy:dy,
-        life_time: 200,
-        size_px: size_px,
-        r:r,
-        g:g,
-        b:b
+        digit_sprites: digit_sprites,
+        # legacy
+        life_time: 200
       }
     end
 
     def update_all(damage_numbers)
       damage_numbers.each do |lab|
-        lab.x += lab.dx
-        lab.y += lab.dy
         lab.life_time -= 1
       end
 
@@ -75,7 +74,9 @@ module DamageNumbers
 
     def render_all(args, damage_numbers)
       camera = args.state.camera
-      args.outputs.labels << damage_numbers.map { |lab| Camera.transform camera, lab.to_label }
+      args.outputs.primitives << damage_numbers.map { |damage_number|
+        damage_number[:digit_sprites].map { |digit_sprite| Camera.transform camera, digit_sprite }
+      }
     end
 
     # Used for previewing the generated sprites
