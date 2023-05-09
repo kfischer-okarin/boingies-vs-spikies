@@ -99,17 +99,21 @@ module DamageNumbers
       damage_numbers.each do |damage_number|
         digit_sprites = damage_number[:digit_sprites]
         digit_sprites.each do |digit_sprite|
-          frame = digit_sprite[:frames].first
-          frame[:tick] ||= 0
-          apply_animation_frame(digit_sprite, frame)
-          frame[:tick] += 1
-          digit_sprite[:frames].shift if frame[:tick] >= frame[:duration]
+          run_animation_frames(digit_sprite, digit_sprite[:frames])
         end
 
         digit_sprites.reject! { |digit_sprite| digit_sprite[:frames].empty? }
       end
 
       damage_numbers.reject! { |damage_number| damage_number[:digit_sprites].empty? }
+    end
+
+    def run_animation_frames(hash, frames)
+      frame = frames.first
+      frame[:tick] ||= 0
+      apply_animation_frame(hash, frame)
+      frame[:tick] += 1
+      frames.shift if frame[:tick] >= frame[:duration]
     end
 
     def apply_animation_frame(hash, frame)
