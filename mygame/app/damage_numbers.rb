@@ -54,6 +54,7 @@ module DamageNumbers
           y: y,
           w: digit_sprite_base[:w] * RENDER_SCALE,
           h: digit_sprite_base[:h] * RENDER_SCALE,
+          angle: -10 + rand(20),
           anchor_x: 0.5, anchor_y: 0.5
         )
       }
