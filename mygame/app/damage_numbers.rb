@@ -113,7 +113,7 @@ module DamageNumbers
 
     def apply_animation_frame(hash, frame)
       frame[:values].each do |key, animation|
-        lerp_value = GTK::Easing.ease(0, frame[:tick], frame[:duration], frame[:easing] || :identity)
+        lerp_value = Easing.ease(0, frame[:tick], frame[:duration], frame[:easing] || :identity)
         hash[key] = lerp_value.remap(0, 1, animation[:from], animation[:to])
       end
     end
