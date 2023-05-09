@@ -68,7 +68,19 @@ module DamageNumbers
 
     def build_animation_frames(digit_sprite, index)
       [
-        { duration: 40 }
+        {
+          values: {
+            w: { from: 0, to: digit_sprite[:w] },
+            h: { from: 0, to: digit_sprite[:h] }
+          },
+          duration: 20
+        },
+        {
+          values: {
+            a: { from: 255, to: 0 }
+          },
+          duration: 20
+        }
       ]
     end
 
@@ -78,6 +90,10 @@ module DamageNumbers
         digit_sprites.each do |digit_sprite|
           frame = digit_sprite[:frames].first
           frame[:tick] ||= 0
+          frame[:values].each do |attribute, animation|
+            lerp_value = GTK::Easing.ease(0, frame[:tick], frame[:duration], animation[:easing] || :identity)
+            digit_sprite[attribute] = lerp_value.remap(0, 1, animation[:from], animation[:to])
+          end
           # do stuff
           frame[:tick] += 1
           digit_sprite[:frames].shift if frame[:tick] >= frame[:duration]
