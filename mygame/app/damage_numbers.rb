@@ -47,7 +47,7 @@ module DamageNumbers
     RENDER_SCALE = 0.5
 
     def build_damage_number(x:, y:, amount:)
-      digits = amount.to_s.chars.map(&:to_i)
+      digits = amount.to_i.to_s.chars.map(&:to_i)
       digit_sprites = digits.map { |digit|
         digit_sprite_base = DIGITS[digit]
         digit_sprite_base.to_sprite(
