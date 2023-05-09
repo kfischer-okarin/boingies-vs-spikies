@@ -43,33 +43,49 @@ module DamageNumbers
     RENDER_SCALE = 0.5
 
     def build_damage_number(x:, y:, amount:)
-      digit_sprites = amount.to_s.chars.map { |digit|
-        digit_sprite_base = DIGITS[digit.to_i]
+      digits = amount.to_s.chars.map(&:to_i)
+      digit_sprites = digits.map { |digit|
+        digit_sprite_base = DIGITS[digit]
         digit_sprite_base.to_sprite(
           y: y,
           w: digit_sprite_base[:w] * RENDER_SCALE,
           h: digit_sprite_base[:h] * RENDER_SCALE
         )
       }
+
       x_offset = -(digit_sprites[0][:w] + (digit_sprites[1][:w] / 2))
       sprite_x = x + x_offset
-      digit_sprites.each do |digit_sprite|
+      digit_sprites.each_with_index do |digit_sprite, index|
         digit_sprite[:x] = sprite_x
+        digit_sprite[:frames] = build_animation_frames(digit_sprite, index)
         sprite_x += digit_sprite[:w]
       end
       {
-        digit_sprites: digit_sprites,
-        # legacy
-        life_time: 200
+        digit_sprites: digit_sprites
       }
     end
 
+    def build_animation_frames(digit_sprite, index)
+      [
+        { duration: 40 }
+      ]
+    end
+
     def update_all(damage_numbers)
-      damage_numbers.each do |lab|
-        lab.life_time -= 1
+      damage_numbers.each do |damage_number|
+        digit_sprites = damage_number[:digit_sprites]
+        digit_sprites.each do |digit_sprite|
+          frame = digit_sprite[:frames].first
+          frame[:tick] ||= 0
+          # do stuff
+          frame[:tick] += 1
+          digit_sprite[:frames].shift if frame[:tick] >= frame[:duration]
+        end
+
+        digit_sprites.reject! { |digit_sprite| digit_sprite[:frames].empty? }
       end
 
-      damage_numbers.reject! { |lab| lab.life_time < 0 }
+      damage_numbers.reject! { |damage_number| damage_number[:digit_sprites].empty? }
     end
 
     def render_all(args, damage_numbers)
