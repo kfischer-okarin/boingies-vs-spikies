@@ -99,11 +99,7 @@ module DamageNumbers
         digit_sprites.each do |digit_sprite|
           frame = digit_sprite[:frames].first
           frame[:tick] ||= 0
-          frame[:values].each do |attribute, animation|
-            lerp_value = GTK::Easing.ease(0, frame[:tick], frame[:duration], animation[:easing] || :identity)
-            digit_sprite[attribute] = lerp_value.remap(0, 1, animation[:from], animation[:to])
-          end
-          # do stuff
+          apply_animation_frame(digit_sprite, frame)
           frame[:tick] += 1
           digit_sprite[:frames].shift if frame[:tick] >= frame[:duration]
         end
@@ -112,6 +108,13 @@ module DamageNumbers
       end
 
       damage_numbers.reject! { |damage_number| damage_number[:digit_sprites].empty? }
+    end
+
+    def apply_animation_frame(hash, frame)
+      frame[:values].each do |key, animation|
+        lerp_value = GTK::Easing.ease(0, frame[:tick], frame[:duration], frame[:easing] || :identity)
+        hash[key] = lerp_value.remap(0, 1, animation[:from], animation[:to])
+      end
     end
 
     def render_all(args, damage_numbers)
