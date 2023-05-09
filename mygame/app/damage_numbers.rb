@@ -77,20 +77,67 @@ module DamageNumbers
     end
 
     def build_animation_frames(digit_sprite, index)
+      # Simple version
+      # [
+      #   {
+      #     values: {
+      #       w: { from: 0, to: digit_sprite[:w] },
+      #       h: { from: 0, to: digit_sprite[:h] }
+      #     },
+      #     duration: 20,
+      #     easing: :smooth_stop_cube
+      #   },
+      #   {
+      #     values: {
+      #       a: { from: 255, to: 0 }
+      #     },
+      #     duration: 20
+      #   }
+      # ]
+
+      # boingy boing boing
+      target_y = digit_sprite[:y]
       [
+        { duration: index * 5 }, # delay each digit a bit
         {
           values: {
             w: { from: 0, to: digit_sprite[:w] },
-            h: { from: 0, to: digit_sprite[:h] }
+            h: { from: 0, to: digit_sprite[:h] },
+            y: { from: target_y, to: target_y + 20 }
           },
-          duration: 20,
+          duration: 15,
           easing: :smooth_stop_cube
         },
         {
           values: {
+            y: { from: target_y + 20, to: target_y }
+          },
+          duration: 10,
+          easing: :quad
+        },
+        {
+          values: {
+            y: { from: target_y, to: target_y + 10 }
+          },
+          duration: 8,
+          easing: :smooth_stop_cube
+        },
+        {
+          values: {
+            y: { from: target_y + 10, to: target_y },
+          },
+          duration: 6
+        },
+        {
+          duration: 30
+        },
+        {
+          values: {
+            x: { from: digit_sprite[:x], to: digit_sprite[:x] - 30 * index },
+            w: { from: digit_sprite[:w], to: 0 },
             a: { from: 255, to: 0 }
           },
-          duration: 20
+          duration: 30
         }
       ]
     end
