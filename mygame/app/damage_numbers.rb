@@ -49,7 +49,8 @@ module DamageNumbers
         digit_sprite_base.to_sprite(
           y: y,
           w: digit_sprite_base[:w] * RENDER_SCALE,
-          h: digit_sprite_base[:h] * RENDER_SCALE
+          h: digit_sprite_base[:h] * RENDER_SCALE,
+          anchor_x: 0.5, anchor_y: 0.5
         )
       }
 
