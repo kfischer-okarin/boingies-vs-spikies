@@ -1,6 +1,7 @@
 require "app/base.rb"
 require "app/camera.rb"
 require "app/camera_movement.rb"
+require "app/damage_numbers.rb"
 require "app/pathfinding.rb"
 require "app/turret.rb"
 require "app/essence.rb"
@@ -42,6 +43,7 @@ def setup(args)
   args.state.essence_held = 0
   args.state.enemy_unique_id = 0
   args.state.current_turret_type = 0
+  DamageNumbers.setup(args)
 end
 
 def load_stage
@@ -135,7 +137,7 @@ def game_update(args)
   update_launcher(args)
   update_launched_turrets(args)
   tick_turret(args)
-  update_dmg_popups(args)
+  DamageNumbers.update_all(args.state.dmg_popups)
   update_essence(args)
 end
 
@@ -292,7 +294,7 @@ def game_render(args)
   render_launcher_ui(args) if args.state.launcher[:state] == :charging
   render_game_over(args) if Base.dead?(args.state.base)
   render_debug_info(args) if args.state.show_debug_info
-  render_dmg_popups(args)
+  DamageNumbers.render_all(args, args.state.dmg_popups)
   render_essence(args)
 
   render_turret_debug(args) if args.state.show_debug_info
