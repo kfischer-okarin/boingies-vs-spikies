@@ -325,9 +325,9 @@ def render_stage_border(args)
   border_style = { path: :pixel, r: 100, g: 100, b: 100 }
   args.outputs.primitives << [
     { x: 0, y: 0, w: bounds_on_screen.left, h: 720 }.sprite!(border_style),
-    { x: bounds_on_screen.left, y: 0, w: 1280, h: bounds_on_screen.bottom }.sprite!(border_style),
+    { x: 0, y: 0, w: 1280, h: bounds_on_screen.bottom }.sprite!(border_style),
     { x: bounds_on_screen.right, y: 0, w: 1280 - bounds_on_screen.right, h: 720 }.sprite!(border_style),
-    { x: bounds_on_screen.left, y: bounds_on_screen.top, w: 1280, h: 720 - bounds_on_screen.top }.sprite!(border_style)
+    { x: 0, y: bounds_on_screen.top, w: 1280, h: 720 - bounds_on_screen.top }.sprite!(border_style)
   ]
 end
 
