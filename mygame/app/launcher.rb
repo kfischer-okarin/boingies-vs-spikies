@@ -1,7 +1,7 @@
 module Launcher
   class << self
     def build
-      {state: :idle, power: 0, direction: nil}
+      {state: :idle, power: 0, direction: nil, max_power: 300}
     end
 
     def control_launcher args
@@ -33,11 +33,10 @@ module Launcher
 
       # tick up the current charge state
       charge_speed = 5
-      max = 300
       min = 0
       launcher[:power] += charge_speed * launcher[:charge_sign]
-      if launcher[:power] > max
-        launcher[:power] = max
+      if launcher[:power] > launcher[:max_power]
+        launcher[:power] = launcher[:max_power]
         launcher[:charge_sign] = -1
       elsif launcher[:power] < min
         launcher[:power] = min
@@ -51,10 +50,18 @@ module Launcher
     end
 
     def charge_bar_sprite(launcher)
-      {
-        x: 1100, y: 50, w: 50, h: launcher[:power],
-        path: :pixel, r: 0, g: 200, b: 0
-      }.sprite!
+      bottom = 50
+      top = 50 + launcher[:max_power]
+      x = 1100
+      [
+        { x: x, y: bottom, x2: x + 100, y2: bottom }.line!,
+        { x: x, y: top, x2: x + 100, y2: top }.line!,
+        { x: x, y: bottom, w: 100, h: top - bottom, r: 0, g: 0, b: 0, a: 100, path: :pixel }.sprite!,
+        {
+          x: x + 25, y: bottom, w: 50, h: launcher[:power],
+          path: :pixel, r: 0, g: 200, b: 0
+        }.sprite!
+      ]
     end
 
     def direction_marker_sprite(args)
