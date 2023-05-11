@@ -13,6 +13,7 @@ module Launcher
         if m.click
           launcher[:state] = :charging
           launcher[:power] = 0
+          launcher[:charge_sign] = 1
         end
       when :charging
         launcher[:direction] = calculate_launcher_direction(args, m)
@@ -31,10 +32,16 @@ module Launcher
       return unless launcher[:state] == :charging
 
       # tick up the current charge state
-      args.state.maxChargePower ||= 720 - 100
-      launcher[:power] += 10
-      if launcher[:power] > args.state.maxChargePower
-        launcher[:power] = args.state.maxChargePower
+      charge_speed = 5
+      max = 300
+      min = 0
+      launcher[:power] += charge_speed * launcher[:charge_sign]
+      if launcher[:power] > max
+        launcher[:power] = max
+        launcher[:charge_sign] = -1
+      elsif launcher[:power] < min
+        launcher[:power] = min
+        launcher[:charge_sign] = 1
       end
     end
 
