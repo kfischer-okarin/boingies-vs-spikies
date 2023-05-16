@@ -23,3 +23,5 @@ Gemfile.lock
 vendor
 ffmpeg.exe
 palantirBETA.exe
+.TODO
+repl.rb
