@@ -46,6 +46,7 @@ module StageEditor
           handle_drag(args)
         else
           handle_new_wall(args)
+          handle_new_spawn_zone(args)
         end
         handle_save(args)
       end
@@ -58,6 +59,9 @@ module StageEditor
       clicked_position = mouse_in_world(args)
       args.state.stage_editor[:selected] = args.state.stage[:walls].find { |wall|
         clicked_position.inside_rect?(wall)
+      }
+      args.state.stage_editor[:selected] ||= args.state.stage[:spawn_zones].find { |zone|
+        clicked_position.inside_rect?(zone)
       }
     end
 
@@ -136,6 +140,23 @@ module StageEditor
       args.state.stage[:walls] << new_wall
       args.state.stage_editor[:selected] = new_wall
       clamp_to_stage(args, new_wall)
+    end
+
+    def handle_new_spawn_zone(args)
+      return unless args.inputs.keyboard.key_down.z
+
+      mouse = mouse_in_world(args)
+      new_spawn_zone_length = 200
+      new_spawn_zone_width = 400
+      new_spawn_zone = {
+        x: mouse[:x] - new_spawn_zone_length.idiv(2),
+        y: mouse[:y] - new_spawn_zone_width.idiv(2),
+        w: new_spawn_zone_length,
+        h: new_spawn_zone_width
+      }
+      args.state.stage[:spawn_zones] << new_spawn_zone
+      args.state.stage_editor[:selected] = new_spawn_zone
+      clamp_to_stage(args, new_spawn_zone)
     end
 
     def handle_save(args)
