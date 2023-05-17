@@ -11,6 +11,7 @@ module Camera
     end
 
     def transform!(camera, rect)
+
       zoom = camera[:zoom]
       camera_bottom_left_x = camera[:center_x] - (camera[:half_w] / zoom)
       camera_bottom_left_y = camera[:center_y] - (camera[:half_h] / zoom)
@@ -27,9 +28,16 @@ module Camera
         rect.merge!(
           size_px: rect[:size_px] * zoom
         )
+      elsif rect[:x2] && rect[:y2]
+        rect.merge!(
+          y2: rect.y2 * zoom,
+          x2: rect.x2 * zoom,
+        )
       else
         rect
       end
+    rescue
+      puts camera, rect
     end
 
     def transform(camera, rect)

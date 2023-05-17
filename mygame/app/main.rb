@@ -2,6 +2,7 @@ require "app/base.rb"
 require "app/camera.rb"
 require "app/camera_movement.rb"
 require "app/damage_numbers.rb"
+require "app/launcher.rb"
 require "app/pathfinding.rb"
 require "app/turret.rb"
 require "app/essence.rb"
@@ -33,7 +34,7 @@ def setup(args)
   args.state.enemies = []
   args.state.base = Base.build args.state.stage
   args.state.camera = Camera.build center_x: args.state.base[:x], center_y: args.state.base[:y]
-  args.state.launcher = {state: :idle, power: 0, direction: nil}
+  args.state.launcher = Launcher.build
   args.state.launched_turrets = []
   args.state.stationary_turrets = []
   args.state.projectiles = []
@@ -57,7 +58,7 @@ def game_process_inputs(args)
       camera: args.state.camera,
       stage: args.state.stage
     )
-    control_launcher(args)
+    Launcher.control_launcher(args)
     change_selected_turret(args)
     unless $gtk.production?
       StageEditor.handle_onoff(args)
@@ -80,34 +81,6 @@ def change_selected_turret(args)
     args.state.current_turret_type +=1
     args.state.current_turret_type = 1 if args.state.current_turret_type > 1
   end
-
-
-end
-
-def control_launcher args
-  m = args.inputs.mouse
-  launcher = args.state.launcher
-
-  case launcher[:state]
-  when :idle
-    if m.click
-      launcher[:state] = :charging
-      launcher[:power] = 0
-    end
-  when :charging
-    launcher[:direction] = calculate_launcher_direction(args, m)
-    launcher[:angle] = angle_from_vector(launcher[:direction])
-    if m.click
-      args.state.launched_turrets << build_turret(args)
-      launcher[:state] = :idle
-      launcher[:power] = 0
-    end
-  end
-end
-
-def calculate_launcher_direction(args, mouse)
-  base_on_screen = Camera.transform args.state.camera, args.state.base
-  direction_between(base_on_screen, mouse)
 end
 
 def build_turret(args)
@@ -134,7 +107,7 @@ def game_update(args)
   move_enemies(args)
   handle_enemy_vs_base_collisions(args)
   handle_dead_enemies(args)
-  update_launcher(args)
+  Launcher.update(args)
   update_launched_turrets(args)
   tick_turret(args)
   DamageNumbers.update_all(args.state.dmg_popups)
@@ -201,21 +174,8 @@ def handle_enemy_vs_base_collisions(args)
   end
 end
 
-def update_launcher(args)
-  launcher = args.state.launcher
-  return unless launcher[:state] == :charging
-
-  # tick up the current charge state
-  args.state.maxChargePower ||= 720 - 100
-  launcher[:power] += 1
-  if launcher[:power] > args.state.maxChargePower
-    launcher[:power] = args.state.maxChargePower
-  end
-end
-
 def update_launched_turrets args
   args.state.launched_turrets.reject!{|lau| lau.pow <=0}
-
 
   butt = collidable_stage_bounds(args)
 
@@ -377,20 +337,13 @@ def render_turret_debug(args)
 end
 
 def render_launcher_ui(args)
-  args.outputs.primitives << {
-    x: 1100, y: 50, w: 50, h: args.state.launcher[:power],
-    path: :pixel, r: 0, g: 200, b: 0
-  }.sprite!
-
   launcher = args.state.launcher
-  if launcher[:direction]
-    base_on_screen = Camera.transform args.state.camera, args.state.base
-    x = base_on_screen.x
-    y = base_on_screen.y
-    length = 200
-    args.outputs.primitives << {
-      x: x, y: y, x2: x + launcher[:direction].x * length, y2: y + launcher[:direction].y * length
-    }.line!
+
+  args.outputs.primitives << Launcher.charge_bar_sprite(launcher)
+
+  if Launcher.charging?(launcher)
+    sprite = Launcher.direction_marker_sprite(args)
+    args.outputs.primitives << sprite if sprite
   end
 end
 
@@ -470,4 +423,5 @@ def bounce(bullet, other)
   bx >= other.x+ other.w
   [bx,by]
 end
+
 $gtk.reset

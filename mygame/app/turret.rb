@@ -5,8 +5,8 @@ def makeTurret x, y, cd, type
   {
     x: x,
     y: y,
-    w: 20,
-    h: 20,
+    w: 40,
+    h: 40,
     cd: 0,
     maxCd: cd,
     dmg: 10,
@@ -20,18 +20,21 @@ end
 
 def turret_stats_bigRoller
   {
-    dmg: 40,
+    dmg: 10,
     shotSpeed: 1,
-    range: 500
+    range: 300,
+    maxCd: 300,
+    life_time: 600
   }
 end
 
 def turret_stats_pdc
   {
-    dmg: 10,
-    shotSpeed: 3,
-    range: 300,
-    maxCd: 60
+    dmg: 2,
+    shotSpeed: 20,
+    range: 500,
+    maxCd: 8,
+    life_time: 20
   }
 end
 
