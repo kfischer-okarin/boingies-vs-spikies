@@ -212,7 +212,7 @@ module StageEditor
         if stage_editor[:selected]
           commands << '(D)elete, (R)otate, (L)onger, (S)horter'
         else
-          commands << '(N)ew wall'
+          commands << '(N)ew wall, New Spawn (Z)one'
         end
       when :nav_grid
       end
