@@ -90,8 +90,18 @@ module StageEditor
     def handle_delete(args)
       return unless args.inputs.keyboard.key_down.d
 
-      args.state.stage[:walls].delete(args.state.stage_editor[:selected])
-      args.state.stage_editor[:selected] = nil
+      stage_editor = args.state.stage_editor
+      stage_objects(args, stage_editor[:selected_type]).delete(stage_editor[:selected])
+      deselect_object(args)
+    end
+
+    def stage_objects(args, type)
+      case type
+      when :wall
+        args.state.stage[:walls]
+      when :spawn_zone
+        args.state.stage[:spawn_zones]
+      end
     end
 
     def handle_rotate(args)
