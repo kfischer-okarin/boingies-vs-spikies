@@ -4,6 +4,7 @@ module StageEditor
       args.state.stage_editor = {
         mode: :walls,
         selected: nil,
+        selected_type: nil,
         dragged: nil
     }
     end
@@ -57,12 +58,33 @@ module StageEditor
       return unless mouse.click
 
       clicked_position = mouse_in_world(args)
-      args.state.stage_editor[:selected] = args.state.stage[:walls].find { |wall|
+      clicked_wall = args.state.stage[:walls].find { |wall|
         clicked_position.inside_rect?(wall)
       }
-      args.state.stage_editor[:selected] ||= args.state.stage[:spawn_zones].find { |zone|
+      if clicked_wall
+        select_object args, :wall, clicked_wall
+        return
+      end
+
+      clicked_spawn_zone = args.state.stage[:spawn_zones].find { |zone|
         clicked_position.inside_rect?(zone)
       }
+      if clicked_spawn_zone
+        select_object args, :spawn_zone, clicked_spawn_zone
+        return
+      end
+
+      deselect_object args
+    end
+
+    def select_object(args, type, object)
+      args.state.stage_editor[:selected] = object
+      args.state.stage_editor[:selected_type] = type
+    end
+
+    def deselect_object(args)
+      args.state.stage_editor[:selected] = nil
+      args.state.stage_editor[:selected_type] = nil
     end
 
     def handle_delete(args)
@@ -138,7 +160,7 @@ module StageEditor
         h: new_wall_thickness
       }
       args.state.stage[:walls] << new_wall
-      args.state.stage_editor[:selected] = new_wall
+      select_object args, :wall, new_wall
       clamp_to_stage(args, new_wall)
     end
 
@@ -155,7 +177,7 @@ module StageEditor
         h: new_spawn_zone_width
       }
       args.state.stage[:spawn_zones] << new_spawn_zone
-      args.state.stage_editor[:selected] = new_spawn_zone
+      select_object args, :spawn_zone, new_spawn_zone
       clamp_to_stage(args, new_spawn_zone)
     end
 
