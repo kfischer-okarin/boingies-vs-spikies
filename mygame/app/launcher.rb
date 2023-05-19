@@ -8,6 +8,12 @@ module Launcher
       m = args.inputs.mouse
       launcher = args.state.launcher
 
+      if args.state.essence_held - Turret::TYPES[args.state.current_turret_type].cost <= 0
+        launcher[:state] = :idle
+        launcher[:power] = 0
+        return
+      end
+
       case launcher[:state]
       when :idle
         if m.click
@@ -20,7 +26,9 @@ module Launcher
         launcher[:angle] = angle_from_vector(launcher[:direction])
         if m.click
           # should extract this back to main?
-          args.state.launched_turrets << build_turret(args)
+          turret = build_turret(args)
+          args.state.launched_turrets << turret
+          args.state.essence_held -= turret.cost
           launcher[:state] = :idle
           launcher[:power] = 0
         end

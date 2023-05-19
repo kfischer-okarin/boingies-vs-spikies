@@ -1,3 +1,20 @@
+module Turret
+  TYPES = [
+    {
+      name: :big_roller,
+      cost: 100
+    },
+    {
+      name: :pdc,
+      cost: 50
+    },
+    {
+      name: :stickers,
+      cost: 75
+    }
+  ]
+end
+
 def makeTurret x, y, cd, type
   range = 500
   speed = 2
@@ -18,7 +35,7 @@ def makeTurret x, y, cd, type
   }.merge!( send("turret_stats_#{type}"))
 end
 
-def turret_stats_bigRoller
+def turret_stats_big_roller
   {
     dmg: 10,
     shotSpeed: 1,
@@ -117,7 +134,7 @@ def circle_to_point_col cir, pt
   dis < cir.range
 end
 
-def make_bigRoller_projectile target, turret
+def make_big_roller_projectile target, turret
   tx = target.x + (target.w/2)
   ty = target.y + (target.h/2)
   enemies_hit = []

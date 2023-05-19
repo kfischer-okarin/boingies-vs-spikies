@@ -41,7 +41,7 @@ def setup(args)
 
   args.state.dmg_popups = []
   args.state.essence_drops = []
-  args.state.essence_held = 0
+  args.state.essence_held = 300
   args.state.enemy_unique_id = 0
   args.state.current_turret_type = 1
   DamageNumbers.setup(args)
@@ -86,12 +86,20 @@ end
 def build_turret(args)
   p = args.state.base
   launcher = args.state.launcher
-
+  type = Turret::TYPES[args.state.current_turret_type].name
   #puts angle = Math.atan2(launcher.direction.y- (p.y+p.h/2), launcher.direction.x - (p.x+p.w/2))
-  options = [:bigRoller, :pdc, :stickers]
   #CD should be based on turret type
-  {x: p.x, y: p.y, w: 20, h: 20, dx: launcher[:direction].x, dy: launcher[:direction].y,
-    pow: launcher[:power] / 5, logical_x: p.x, logical_y: p.y, type: options[args.state.current_turret_type], cd:60, angle: launcher[:angle]}
+  {
+    x: p.x, y: p.y,
+    w: 20, h: 20,
+    dx: launcher[:direction].x, dy: launcher[:direction].y,
+    logical_x: p.x, logical_y: p.y,
+    pow: launcher[:power] / 5,
+    type: Turret::TYPES[args.state.current_turret_type].name,
+    cost: Turret::TYPES[args.state.current_turret_type].cost,
+    cd: 60,
+    angle: launcher[:angle]
+  }
 end
 
 def handle_toggle_debug_info(args)
@@ -149,7 +157,6 @@ def handle_dead_enemies(args)
 end
 
 def enemy_dead?(args, enemy)
-  # for now die when enemy touches player area
   enemy.health <= 0
 end
 
