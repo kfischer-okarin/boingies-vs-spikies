@@ -8,15 +8,9 @@ module Launcher
       m = args.inputs.mouse
       launcher = args.state.launcher
 
-      if args.state.essence_held - Turret::TYPES[args.state.current_turret_type].cost <= 0
-        launcher[:state] = :idle
-        launcher[:power] = 0
-        return
-      end
-
       case launcher[:state]
       when :idle
-        if m.click
+        if m.click && can_launch?(args)
           launcher[:state] = :charging
           launcher[:power] = 0
           launcher[:charge_sign] = 1
@@ -33,6 +27,10 @@ module Launcher
           launcher[:power] = 0
         end
       end
+    end
+
+    def can_launch?(args)
+      args.state.essence_held >= Turret::TYPES[args.state.current_turret_type].cost
     end
 
     def update(args)
