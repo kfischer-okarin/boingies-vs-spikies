@@ -91,7 +91,7 @@ def tick_turret args
           shot.r = 0
 
           if en.health <= 0
-            args.state.escessence_drops << make_essence(en)
+            args.state.essence_drops << make_essence(en)
           else
             shot.enemies_hit << en.unique_id.dup
             shot.homing = false
@@ -191,9 +191,4 @@ def fuse_turret existing_turret, fusing_from
   existing_turret.shotSpeed *= 1.1
   existing_turret.maxCd *= 0.95
   existing_turret.life_time = existing_turret.range / existing_turret.shotSpeed
-end
-
-
-def distance_between(obj1, obj2)
-  distance = Math.sqrt( ((obj1.x - obj2.x)**2) + ((obj1.y - obj2.y)**2) )
 end

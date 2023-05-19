@@ -4,6 +4,7 @@ module StageEditor
       args.state.stage_editor = {
         mode: :walls,
         selected: nil,
+        selected_type: nil,
         dragged: nil
     }
     end
@@ -46,6 +47,7 @@ module StageEditor
           handle_drag(args)
         else
           handle_new_wall(args)
+          handle_new_spawn_zone(args)
         end
         handle_save(args)
       end
@@ -56,16 +58,50 @@ module StageEditor
       return unless mouse.click
 
       clicked_position = mouse_in_world(args)
-      args.state.stage_editor[:selected] = args.state.stage[:walls].find { |wall|
+      clicked_wall = args.state.stage[:walls].find { |wall|
         clicked_position.inside_rect?(wall)
       }
+      if clicked_wall
+        select_object args, :wall, clicked_wall
+        return
+      end
+
+      clicked_spawn_zone = args.state.stage[:spawn_zones].find { |zone|
+        clicked_position.inside_rect?(zone)
+      }
+      if clicked_spawn_zone
+        select_object args, :spawn_zone, clicked_spawn_zone
+        return
+      end
+
+      deselect_object args
+    end
+
+    def select_object(args, type, object)
+      args.state.stage_editor[:selected] = object
+      args.state.stage_editor[:selected_type] = type
+    end
+
+    def deselect_object(args)
+      args.state.stage_editor[:selected] = nil
+      args.state.stage_editor[:selected_type] = nil
     end
 
     def handle_delete(args)
       return unless args.inputs.keyboard.key_down.d
 
-      args.state.stage[:walls].delete(args.state.stage_editor[:selected])
-      args.state.stage_editor[:selected] = nil
+      stage_editor = args.state.stage_editor
+      stage_objects(args, stage_editor[:selected_type]).delete(stage_editor[:selected])
+      deselect_object(args)
+    end
+
+    def stage_objects(args, type)
+      case type
+      when :wall
+        args.state.stage[:walls]
+      when :spawn_zone
+        args.state.stage[:spawn_zones]
+      end
     end
 
     def handle_rotate(args)
@@ -134,8 +170,25 @@ module StageEditor
         h: new_wall_thickness
       }
       args.state.stage[:walls] << new_wall
-      args.state.stage_editor[:selected] = new_wall
+      select_object args, :wall, new_wall
       clamp_to_stage(args, new_wall)
+    end
+
+    def handle_new_spawn_zone(args)
+      return unless args.inputs.keyboard.key_down.z
+
+      mouse = mouse_in_world(args)
+      new_spawn_zone_length = 200
+      new_spawn_zone_width = 400
+      new_spawn_zone = {
+        x: mouse[:x] - new_spawn_zone_length.idiv(2),
+        y: mouse[:y] - new_spawn_zone_width.idiv(2),
+        w: new_spawn_zone_length,
+        h: new_spawn_zone_width
+      }
+      args.state.stage[:spawn_zones] << new_spawn_zone
+      select_object args, :spawn_zone, new_spawn_zone
+      clamp_to_stage(args, new_spawn_zone)
     end
 
     def handle_save(args)
@@ -191,7 +244,7 @@ module StageEditor
         if stage_editor[:selected]
           commands << '(D)elete, (R)otate, (L)onger, (S)horter'
         else
-          commands << '(N)ew wall'
+          commands << '(N)ew wall, New Spawn (Z)one'
         end
       when :nav_grid
       end

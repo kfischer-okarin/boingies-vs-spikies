@@ -40,10 +40,10 @@ def setup(args)
   args.state.projectiles = []
 
   args.state.dmg_popups = []
-  args.state.escessence_drops = []
+  args.state.essence_drops = []
   args.state.essence_held = 0
   args.state.enemy_unique_id = 0
-  args.state.current_turret_type = 0
+  args.state.current_turret_type = 1
   DamageNumbers.setup(args)
 end
 
@@ -103,7 +103,7 @@ end
 def game_update(args)
   return if game_over?(args)
 
-  spawn_spikey(args) if args.tick_count.mod_zero? 60
+  spawn_spikey(args) if args.inputs.keyboard.key_held.five || args.tick_count.mod_zero?(60)
   move_enemies(args)
   handle_enemy_vs_base_collisions(args)
   handle_dead_enemies(args)
@@ -115,31 +115,19 @@ def game_update(args)
 end
 
 def spawn_spikey(args)
-  direction = %i[top right bottom left].sample
-  bounds = stage_bounds(args.state.stage)
-  case direction
-  when :top
-    x = bounds.left + rand(bounds.w)
-    y = bounds.top
-  when :right
-    x = bounds.right
-    y = bounds.bottom + rand(bounds.h)
-  when :bottom
-    x = bounds.left + rand(bounds.w)
-    y = bounds.bottom
-  when :left
-    x = bounds.left
-    y = bounds.bottom + rand(bounds.h)
-  end
+  spawn_zone = args.state.stage.spawn_zones.sample
 
   args.state.enemies << {
-    x: x, y: y, w: 100, h: 100,
+    x: spawn_zone.x + rand(spawn_zone.w).to_i,
+    y: spawn_zone.y + rand(spawn_zone.h).to_i,
+    w: 100, h: 100,
     anchor_x: 0.5, anchor_y: 0.5,
     health: 100,
     type: :spikey_ball,
     essence_amount: 10,
     unique_id: args.state.enemy_unique_id
   }
+
   args.state.enemy_unique_id += 1
 end
 
@@ -277,7 +265,17 @@ def render_stage(args)
   args.outputs.primitives << stage[:walls].map { |wall|
     Camera.transform! camera, wall.to_sprite(path: :pixel, r: 255, g: 0, b: 0)
   }
+  render_spawn_zones(args)
   render_stage_border(args)
+end
+
+def render_spawn_zones(args)
+  zones = args.state.stage.spawn_zones
+  camera = args.state.camera
+
+  args.outputs.primitives << zones.map do |zone|
+    Camera.transform! camera, zone.to_sprite(path: :pixel, r: 255, g: 0, b: 0, a: 50)
+  end
 end
 
 def render_stage_border(args)
@@ -376,9 +374,12 @@ def render_game_over(args)
 end
 
 def render_debug_info(args)
+  mouse = mouse_in_world(args)
+
   args.outputs.primitives << [
-    { x: 0, y: 690, w: 200, h: 30, r: 0, g: 0, b: 0, a: 128, path: :pixel }.sprite!,
-    { x: 5, y: 715, text: "FPS: #{args.gtk.current_framerate.to_i}", r: 255, g: 255, b: 255 }.label!
+    { x: 0, y: 660, w: 200, h: 60, r: 0, g: 0, b: 0, a: 128, path: :pixel }.sprite!,
+    { x: 5, y: 715, text: "FPS: #{args.gtk.current_framerate.to_i}", r: 255, g: 255, b: 255 }.label!,
+    { x: 5, y: 690, text: "Mouse: (#{mouse.x.round(2)}, #{mouse.y.round(2)})", r: 255, g: 255, b: 255 }.label!
   ]
 end
 
@@ -408,6 +409,10 @@ def direction_between(from, to)
   result = Matrix.vec2(to.x - from.x, to.y - from.y)
   Matrix.normalize! result
   result
+end
+
+def distance_between(obj1, obj2)
+  distance = Math.sqrt( ((obj1.x - obj2.x)**2) + ((obj1.y - obj2.y)**2) )
 end
 
 def bounce(bullet, other)
