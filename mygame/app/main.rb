@@ -4,6 +4,7 @@ require "app/camera_movement.rb"
 require "app/damage_numbers.rb"
 require "app/launcher.rb"
 require "app/pathfinding.rb"
+require "app/collisions.rb"
 require "app/turret.rb"
 require "app/essence.rb"
 require "app/stage_editor.rb"
@@ -111,7 +112,7 @@ end
 def game_update(args)
   return if game_over?(args)
 
-  spawn_spikey(args) if args.inputs.keyboard.key_held.five || args.tick_count.mod_zero?(60)
+  spawn_spikey(args) if args.inputs.keyboard.key_up.five || args.tick_count.mod_zero?(60)
   move_enemies(args)
   handle_enemy_vs_base_collisions(args)
   handle_dead_enemies(args)
@@ -339,6 +340,17 @@ def render_turret_debug(args)
   args.outputs.primitives << args.state.stationary_turrets.map { |turret|
     Camera.transform! camera, setup_circle(turret, turret.fusion_range).merge(r:200, g: 0)
   }
+
+  sight_lines = args.state.stationary_turrets.flat_map do |turret|
+    enemies_in_range = Turret.enemies_in_range(turret, args.state.enemies)
+    enemies_in_range.map do |enemy|
+      visible = Turret.can_see_enemy?(turret, enemy, args.state.stage)
+      color = { r: visible ? 255 : 0, g: 0, b: 0 }
+      line = Turret.line_of_sight(turret, enemy)
+      Camera.transform(camera, line).merge(color).line
+    end
+  end
+  args.outputs.primitives << sight_lines if sight_lines.size > 0
 end
 
 def render_launcher_ui(args)
