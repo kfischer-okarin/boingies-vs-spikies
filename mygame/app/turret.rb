@@ -13,6 +13,41 @@ module Turret
       cost: 75
     }
   ]
+
+  class << self
+    def enemies_in_range(turret, enemies)
+      enemies.select do |enemy|
+        circle_to_point_colision turret, enemy
+      end
+    end
+
+    def line_of_sight(turret, enemy)
+      {
+        x: enemy.x,
+        y: enemy.y,
+        x2: turret.x + turret.w / 2,
+        y2: turret.y + turret.h / 2
+      }
+    end
+
+    def walls_in_range(turret, walls)
+      range = turret.range
+      turret_range_rect = { x: turret.x - range, y: turret.y - range, h: 2 * range, w: 2 * range }
+
+      GTK::Geometry.find_all_intersect_rect turret_range_rect, walls
+    end
+
+    def can_see_enemy?(turret, enemy, stage)
+      # draw a line between turret and enemy
+      line = line_of_sight(turret, enemy)
+      # check if it collides with any of the walls
+      obstructing_wall = walls_in_range(turret, stage.walls).detect do |wall|
+        Collisions.line_intersect_rect? line, wall
+      end
+
+      !obstructing_wall
+    end
+  end
 end
 
 def makeTurret x, y, cd, type
@@ -55,17 +90,19 @@ def turret_stats_pdc
   }
 end
 
+
+
+
+
 def tick_turret args
-  args.state.stationary_turrets.each do |t|
-    t.cd += 1
-    if t.cd > t.maxCd
-      #do the shoot
-      #nah should probably check if something is in range
-      args.state.enemies.each do |en|
-        in_range = circle_to_point_col t, en
-        if in_range
-          args.state.projectiles << send("make_#{t.type}_projectile", en, t)
-          t.cd = 0
+  args.state.stationary_turrets.each do |turret|
+    turret.cd += 1
+    if turret.cd > turret.maxCd
+      enemies_in_range = Turret.enemies_in_range(turret, args.state.enemies)
+      enemies_in_range.each do |enemy|
+        if Turret.can_see_enemy?(turret, enemy, args.state.stage)
+          args.state.projectiles << send("make_#{turret.type}_projectile", enemy, turret  )
+          turret.cd = 0
           break
         end
       end
@@ -118,20 +155,21 @@ def tick_turret args
     end
   end
 end
-#doing center to center for the collision just felt like the best option
-def circle_to_point_col cir, pt
-  cx = cir.x + (cir.w / 2)
-  cy = cir.y + (cir.h / 2)
 
-  px = pt.x + (pt.w/2)
-  py = pt.y + (pt.h/2)
+#doing center to center for the collision just felt like the best option
+def circle_to_point_colision turret, enemy
+  cx = turret.x + (turret.w / 2)
+  cy = turret.y + (turret.h / 2)
+
+  px = enemy.x + (enemy.w / 2)
+  py = enemy.y + (enemy.h / 2)
 
   disx = px - cx
   disy = py - cy
 
   dis = Math.sqrt((disx**2) + (disy**2))
 
-  dis < cir.range
+  dis < turret.range
 end
 
 def make_big_roller_projectile target, turret
