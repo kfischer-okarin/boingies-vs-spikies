@@ -15,9 +15,9 @@ module Turret
   ]
 
   class << self
-    def enemies_in_range(turret, enemies)
-      enemies.select do |enemy|
-        circle_to_point_colision turret, enemy
+    def enemies_in_range(turret, enemies, &block)
+      enemies.each do |enemy|
+        yield enemy if circle_to_point_colision(turret, enemy)
       end
     end
 
@@ -90,16 +90,11 @@ def turret_stats_pdc
   }
 end
 
-
-
-
-
 def tick_turret args
   args.state.stationary_turrets.each do |turret|
     turret.cd += 1
     if turret.cd > turret.maxCd
-      enemies_in_range = Turret.enemies_in_range(turret, args.state.enemies)
-      enemies_in_range.each do |enemy|
+      Turret.enemies_in_range(turret, args.state.enemies) do |enemy|
         if Turret.can_see_enemy?(turret, enemy, args.state.stage)
           args.state.projectiles << send("make_#{turret.type}_projectile", enemy, turret  )
           turret.cd = 0
@@ -109,9 +104,11 @@ def tick_turret args
     end
   end
 
+  #handle_dead_projectiles
   #yeah I was being lazy maybe projectiles should have there own update
   args.state.projectiles.reject! { |shot| shot.pen < 0 || shot.life_time < 0 }
 
+  #update_projectiles
   args.state.projectiles.each do |shot|
     shot.life_time -= 1
 
@@ -123,13 +120,6 @@ def tick_turret args
     speed = shot.speed
     shot[:x] += to_target[:x] * speed
     shot[:y] += to_target[:y] * speed
-
-    #the intent here is, if its really close to the target xy it'll just stop and clear itself
-    #doesn't work in its current state # STILL DOESN@T WORK :( SADNESS
-
-    if distance_between(shot, to_target) < (2*speed)
-      shot.life_time = -1
-    end
 
     args.state.enemies.each do |en|
       if shot.intersect_rect? en
