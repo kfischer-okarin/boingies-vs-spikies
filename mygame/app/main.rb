@@ -92,7 +92,7 @@ def build_turret(args)
   #CD should be based on turret type
   {
     x: p.x, y: p.y,
-    w: 20, h: 20,
+    w: 100, h: 100,
     dx: launcher[:direction].x, dy: launcher[:direction].y,
     logical_x: p.x, logical_y: p.y,
     pow: launcher[:power] / 5,
@@ -202,7 +202,7 @@ def update_launched_turrets args
       end
     end
 
-    lau.pow -= 1
+    lau.pow -= 0.1
     if lau.pow <= 0
       lau.pow = 0
       #eh symbols for turrets?
@@ -319,7 +319,7 @@ end
 def render_turrets(args)
   camera = args.state.camera
   args.outputs.primitives << args.state.launched_turrets.map { |turret|
-    Camera.transform! camera, turret.to_sprite(path: :pixel, r: 0, g: 0, b: 0)
+    Camera.transform! camera, turret.to_sprite(path: "sprites/circle.png", r: 200, g: 200, b: 200)
   }
 
   args.outputs.primitives << args.state.stationary_turrets.map { |turret|
@@ -431,7 +431,7 @@ def direction_between(from, to)
 end
 
 def distance_between(obj1, obj2)
-  distance = Math.sqrt( ((obj1.x - obj2.x)**2) + ((obj1.y - obj2.y)**2) )
+  Math.sqrt( ((obj1.x - obj2.x)**2) + ((obj1.y - obj2.y)**2) )
 end
 
 def bounce(bullet, other)

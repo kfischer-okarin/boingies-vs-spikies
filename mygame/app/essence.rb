@@ -37,7 +37,7 @@ def update_essence args
   args.state.essence_drops.each do |essence|
     essence.life_time -= 1
 
-    if essence.life_time < 350
+    if essence.life_time < 600
       direction = direction_between(essence, mouse)
       distance = distance_between(essence, mouse)
       essence.acceleration += 1 / distance if distance > 1
@@ -53,9 +53,7 @@ def update_essence args
     end
 
     if essence.intersect_rect? mouse.merge(w: 20, h: 20)
-      args.state.essence_held += essence.amount
-      essence.amout = 0
-      essence.life_time = 0
+
     end
   end
 end

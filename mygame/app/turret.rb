@@ -57,8 +57,8 @@ def makeTurret x, y, cd, type
   {
     x: x,
     y: y,
-    w: 40,
-    h: 40,
+    w: 100,
+    h: 100,
     cd: 0,
     maxCd: cd,
     dmg: 10,
