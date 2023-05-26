@@ -43,7 +43,7 @@ def setup(args)
 
   args.state.dmg_popups = []
   args.state.essence_drops = []
-  args.state.essence_held = 300
+  args.state.essence_held = 1000
   args.state.enemy_unique_id = 0
   args.state.current_turret_type = 1
   DamageNumbers.setup(args)
@@ -157,7 +157,7 @@ def update_launched_turrets args
     end
 
     lau.pow -= 0.1
-    if lau.pow <= 0
+    if lau.pow <= 0 && inside_zone?(lau, args.state.stage.deployment_zones)
       lau.pow = 0
       #eh symbols for turrets?
       potential_turret = makeTurret(lau.logical_x, lau.logical_y, lau.cd, lau.type)
@@ -228,6 +228,7 @@ def render_stage(args)
     Camera.transform! camera, wall.to_sprite(path: :pixel, r: 255, g: 0, b: 0)
   }
   render_spawn_zones(args)
+  render_deploy_zones(args)
   render_stage_border(args)
 end
 
@@ -237,6 +238,15 @@ def render_spawn_zones(args)
 
   args.outputs.primitives << zones.map do |zone|
     Camera.transform! camera, zone.to_sprite(path: :pixel, r: 255, g: 0, b: 0, a: 50)
+  end
+end
+
+def render_deploy_zones(args)
+  zones = args.state.stage.deployment_zones
+  camera = args.state.camera
+
+  args.outputs.primitives << zones.map do |zone|
+    Camera.transform! camera, zone.to_sprite(path: :pixel, r: 50, g: 220, b: 120, a: 50)
   end
 end
 
@@ -398,6 +408,10 @@ def bounce(bullet, other)
   bullet.angle = 180 - bullet.angle if bx + bullet.w <= other.x ||
   bx >= other.x+ other.w
   [bx,by]
+end
+
+def inside_zone?(turret, zones)
+  GTK::Geometry.find_intersect_rect turret, zones
 end
 
 $gtk.reset

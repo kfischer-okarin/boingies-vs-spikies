@@ -121,9 +121,11 @@ def tick_turret args
     shot[:x] += to_target[:x] * speed
     shot[:y] += to_target[:y] * speed
 
+    #projectiles collision check
     args.state.enemies.each do |en|
       if shot.intersect_rect? en
         unless shot.enemies_hit.include? en.unique_id
+          # enemy rceive damage
           en.health -= shot.dmg
           args.state.dmg_popups << DamageNumbers.build_damage_number(
             x: (en.x + shot.x) / 2,
