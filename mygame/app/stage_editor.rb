@@ -48,6 +48,7 @@ module StageEditor
         else
           handle_new_wall(args)
           handle_new_spawn_zone(args)
+          handle_new_deployment_zone(args)
         end
         handle_save(args)
       end
@@ -71,6 +72,14 @@ module StageEditor
       }
       if clicked_spawn_zone
         select_object args, :spawn_zone, clicked_spawn_zone
+        return
+      end
+
+      clicked_deployment_zone = args.state.stage[:deployment_zones].find { |zone|
+        clicked_position.inside_rect?(zone)
+      }
+      if clicked_deployment_zone
+        select_object args, :deployment_zone, clicked_deployment_zone
         return
       end
 
@@ -101,6 +110,8 @@ module StageEditor
         args.state.stage[:walls]
       when :spawn_zone
         args.state.stage[:spawn_zones]
+      when :deployment_zone
+        args.state.stage[:deployment_zones]
       end
     end
 
@@ -191,6 +202,23 @@ module StageEditor
       clamp_to_stage(args, new_spawn_zone)
     end
 
+    def handle_new_deployment_zone(args)
+      return unless args.inputs.keyboard.key_down.d
+
+      mouse = mouse_in_world(args)
+      new_deployment_zone_length = 200
+      new_deployment_zone_width = 400
+      new_deployment_zone = {
+        x: mouse[:x] - new_deployment_zone_length.idiv(2),
+        y: mouse[:y] - new_deployment_zone_width.idiv(2),
+        w: new_deployment_zone_length,
+        h: new_deployment_zone_width
+      }
+      args.state.stage[:deployment_zones] << new_deployment_zone
+      select_object args, :deployment_zone, new_deployment_zone
+      clamp_to_stage(args, new_deployment_zone)
+    end
+
     def handle_save(args)
       return unless args.inputs.keyboard.key_down.one
 
@@ -207,10 +235,10 @@ module StageEditor
       stage_editor[:mode] = modes[(current_mode_index + 1) % modes.length]
     end
 
-    def clamp_to_stage(args, wall)
+    def clamp_to_stage(args, stage_object)
       bounds = stage_bounds(args.state.stage)
-      wall[:x] = wall[:x].clamp(bounds.left, bounds.right - wall[:w])
-      wall[:y] = wall[:y].clamp(bounds.bottom, bounds.top - wall[:h])
+      stage_object[:x] = stage_object[:x].clamp(bounds.left, bounds.right - stage_object[:w])
+      stage_object[:y] = stage_object[:y].clamp(bounds.bottom, bounds.top - stage_object[:h])
     end
 
     def render(args)
@@ -244,7 +272,7 @@ module StageEditor
         if stage_editor[:selected]
           commands << '(D)elete, (R)otate, (L)onger, (S)horter'
         else
-          commands << '(N)ew wall, New Spawn (Z)one'
+          commands << '(N)ew wall, New Spawn (Z)one, New (D)eployment Zone'
         end
       when :nav_grid
       end
