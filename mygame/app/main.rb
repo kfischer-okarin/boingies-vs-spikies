@@ -7,6 +7,7 @@ require "app/pathfinding.rb"
 require "app/collisions.rb"
 require "app/turret.rb"
 require "app/essence.rb"
+require "app/enemies.rb"
 require "app/stage_editor.rb"
 
 def tick(args)
@@ -92,7 +93,7 @@ def build_turret(args)
   #CD should be based on turret type
   {
     x: p.x, y: p.y,
-    w: 20, h: 20,
+    w: 100, h: 100,
     dx: launcher[:direction].x, dy: launcher[:direction].y,
     logical_x: p.x, logical_y: p.y,
     pow: launcher[:power] / 5,
@@ -112,62 +113,15 @@ end
 def game_update(args)
   return if game_over?(args)
 
-  spawn_spikey(args) if args.inputs.keyboard.key_up.five || args.tick_count.mod_zero?(60)
-  move_enemies(args)
-  handle_enemy_vs_base_collisions(args)
-  handle_dead_enemies(args)
+  Enemies.spawn_spikey(args) if args.tick_count.mod_zero?(60)
+  Enemies.update(args)
+  Enemies.handle_enemy_vs_base_collisions(args)
+  Enemies.handle_dead_ones(args)
   Launcher.update(args)
   update_launched_turrets(args)
   tick_turret(args)
   DamageNumbers.update_all(args.state.dmg_popups)
   update_essence(args)
-end
-
-def spawn_spikey(args)
-  spawn_zone = args.state.stage.spawn_zones.sample
-
-  args.state.enemies << {
-    x: spawn_zone.x + rand(spawn_zone.w).to_i,
-    y: spawn_zone.y + rand(spawn_zone.h).to_i,
-    w: 100, h: 100,
-    anchor_x: 0.5, anchor_y: 0.5,
-    health: 100,
-    type: :spikey_ball,
-    essence_amount: 10,
-    unique_id: args.state.enemy_unique_id
-  }
-
-  args.state.enemy_unique_id += 1
-end
-
-def move_enemies(args)
-  args.state.enemies.each do |enemy|
-    move_enemy(args, enemy)
-  end
-end
-
-def move_enemy(args, enemy)
-  to_base = Pathfinding.direction_to_base(args.state.navigation_grid, enemy)
-  speed = 2
-  enemy[:x] += to_base[:x] * speed
-  enemy[:y] += to_base[:y] * speed
-end
-
-def handle_dead_enemies(args)
-  args.state.enemies.reject! { |enemy| enemy_dead?(args, enemy) }
-end
-
-def enemy_dead?(args, enemy)
-  enemy.health <= 0
-end
-
-def handle_enemy_vs_base_collisions(args)
-  args.state.enemies.each do |enemy|
-    if enemy.intersect_rect? args.state.base
-      args.state.base.health -= 5
-      enemy.health = 0
-    end
-  end
 end
 
 def update_launched_turrets args
@@ -202,7 +156,7 @@ def update_launched_turrets args
       end
     end
 
-    lau.pow -= 1
+    lau.pow -= 0.1
     if lau.pow <= 0
       lau.pow = 0
       #eh symbols for turrets?
@@ -310,16 +264,14 @@ end
 def render_enemies(args)
   camera = args.state.camera
   args.outputs.primitives << args.state.enemies.map { |enemy|
-    Camera.transform! camera, enemy.to_sprite(
-      path: "sprites/#{enemy[:type]}.png"
-    )
+    Camera.transform! camera, enemy.to_sprite
   }
 end
 
 def render_turrets(args)
   camera = args.state.camera
   args.outputs.primitives << args.state.launched_turrets.map { |turret|
-    Camera.transform! camera, turret.to_sprite(path: :pixel, r: 0, g: 0, b: 0)
+    Camera.transform! camera, turret.to_sprite(path: "sprites/circle.png", r: 200, g: 200, b: 200)
   }
 
   args.outputs.primitives << args.state.stationary_turrets.map { |turret|
@@ -431,7 +383,7 @@ def direction_between(from, to)
 end
 
 def distance_between(obj1, obj2)
-  distance = Math.sqrt( ((obj1.x - obj2.x)**2) + ((obj1.y - obj2.y)**2) )
+  Math.sqrt( ((obj1.x - obj2.x)**2) + ((obj1.y - obj2.y)**2) )
 end
 
 def bounce(bullet, other)
