@@ -263,14 +263,6 @@ def render_stage_border(args)
   ]
 end
 
-def render_stage_bounds_colliders(args)
-  camera = args.state.camera
-  args.outputs.primitives << collidable_stage_bounds(args).map { |turret|
-    Camera.transform! camera, turret.to_sprite(path: :pixel, r: 0, g: 200, b: 0)
-  }
-end
-
-
 def render_enemies(args)
   camera = args.state.camera
   args.outputs.primitives << args.state.enemies.map { |enemy|
@@ -291,28 +283,6 @@ def render_turrets(args)
   args.outputs.primitives << args.state.projectiles.map { |shot|
     Camera.transform! camera, shot.to_sprite(path: :pixel)
   }
-end
-
-def render_turret_debug(args)
-  camera = args.state.camera
-  args.outputs.primitives << args.state.stationary_turrets.map { |turret|
-    Camera.transform! camera, setup_circle(turret, turret.range)
-  }
-
-  args.outputs.primitives << args.state.stationary_turrets.map { |turret|
-    Camera.transform! camera, setup_circle(turret, turret.fusion_range).merge(r:200, g: 0)
-  }
-
-  sight_lines = args.state.stationary_turrets.flat_map do |turret|
-    enemies_in_range = Turret.enemies_in_range(turret, args.state.enemies)
-    enemies_in_range.map do |enemy|
-      visible = Turret.can_see_enemy?(turret, enemy, args.state.stage)
-      color = { r: visible ? 255 : 0, g: 0, b: 0 }
-      line = Turret.line_of_sight(turret, enemy)
-      Camera.transform(camera, line).merge(color).line
-    end
-  end
-  args.outputs.primitives << sight_lines if sight_lines.size > 0
 end
 
 def render_launcher_ui(args)
@@ -362,6 +332,35 @@ def render_debug_info(args)
     { x: 5, y: 715, text: "FPS: #{args.gtk.current_framerate.to_i}", r: 255, g: 255, b: 255 }.label!,
     { x: 5, y: 690, text: "Mouse: (#{mouse.x.round(2)}, #{mouse.y.round(2)})", r: 255, g: 255, b: 255 }.label!
   ]
+end
+
+def render_turret_debug(args)
+  camera = args.state.camera
+  args.outputs.primitives << args.state.stationary_turrets.map { |turret|
+    Camera.transform! camera, setup_circle(turret, turret.range)
+  }
+
+  args.outputs.primitives << args.state.stationary_turrets.map { |turret|
+    Camera.transform! camera, setup_circle(turret, turret.fusion_range).merge(r:200, g: 0)
+  }
+
+  sight_lines = args.state.stationary_turrets.flat_map do |turret|
+    enemies_in_range = Turret.enemies_in_range(turret, args.state.enemies)
+    enemies_in_range.map do |enemy|
+      visible = Turret.can_see_enemy?(turret, enemy, args.state.stage)
+      color = { r: visible ? 255 : 0, g: 0, b: 0 }
+      line = Turret.line_of_sight(turret, enemy)
+      Camera.transform(camera, line).merge(color).line
+    end
+  end
+  args.outputs.primitives << sight_lines if sight_lines.size > 0
+end
+
+def render_stage_bounds_colliders(args)
+  camera = args.state.camera
+  args.outputs.primitives << collidable_stage_bounds(args).map { |turret|
+    Camera.transform! camera, turret.to_sprite(path: :pixel, r: 0, g: 200, b: 0)
+  }
 end
 
 def mouse_in_world(args)
