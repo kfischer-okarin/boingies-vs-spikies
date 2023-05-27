@@ -216,14 +216,17 @@ def game_render(args)
   render_enemies(args)
   render_turrets(args)
   render_launcher_ui(args) if args.state.launcher[:state] == :charging
-  render_game_over(args) if Base.dead?(args.state.base)
   render_debug_info(args) if args.state.show_debug_info
   DamageNumbers.render_all(args, args.state.dmg_popups)
   render_essence(args)
   render_wave_info(args)
 
-  render_turret_debug(args) if args.state.show_debug_info
-  render_stage_bounds_colliders(args) if args.state.show_debug_info
+  if args.state.show_debug_info
+    render_turret_debug(args)
+    render_stage_bounds_colliders(args)
+  end
+
+  render_game_over(args) if Base.dead?(args.state.base)
 end
 
 def render_base(args)
