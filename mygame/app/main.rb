@@ -41,6 +41,7 @@ def setup(args)
   args.state.launched_turrets = []
   args.state.stationary_turrets = []
   args.state.projectiles = []
+  args.state.waves_state = Waves.build_state args.state.stage
 
   args.state.dmg_popups = []
   args.state.essence_drops = []
@@ -114,15 +115,23 @@ end
 def game_update(args)
   return if game_over?(args)
 
-  Waves.tick(args)
+  Waves.tick(args, args.state.waves_state)
   Enemies.update(args)
   Enemies.handle_enemy_vs_base_collisions(args)
   Enemies.handle_dead_ones(args)
+  handle_next_wave(args) if Waves.in_wave?(args.state.waves_state)
   Launcher.update(args)
   update_launched_turrets(args)
   tick_turret(args)
   DamageNumbers.update_all(args.state.dmg_popups)
   update_essence(args)
+end
+
+def handle_next_wave(args)
+  waves_state = args.state.waves_state
+  return unless Waves.no_more_enemies_in_this_wave?(waves_state) && args.state.enemies.empty?
+
+  Waves.prepare_next_wave(waves_state)
 end
 
 def update_launched_turrets args
