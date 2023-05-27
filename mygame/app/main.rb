@@ -131,7 +131,11 @@ def handle_next_wave(args)
   waves_state = args.state.waves_state
   return unless Waves.no_more_enemies_in_this_wave?(waves_state) && args.state.enemies.empty?
 
-  Waves.prepare_next_wave(waves_state)
+  if Waves.last_wave?(waves_state)
+    # Show win / go to next stage screen?
+  else
+    Waves.prepare_next_wave(waves_state)
+  end
 end
 
 def update_launched_turrets args
