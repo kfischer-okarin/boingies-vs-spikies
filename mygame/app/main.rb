@@ -216,6 +216,7 @@ def game_render(args)
   render_debug_info(args) if args.state.show_debug_info
   DamageNumbers.render_all(args, args.state.dmg_popups)
   render_essence(args)
+  render_wave_info(args)
 
   render_turret_debug(args) if args.state.show_debug_info
   render_stage_bounds_colliders(args) if args.state.show_debug_info
@@ -294,6 +295,24 @@ def render_launcher_ui(args)
     sprite = Launcher.direction_marker_sprite(args)
     args.outputs.primitives << sprite if sprite
   end
+end
+
+def render_wave_info(args)
+  waves_state = args.state.waves_state
+  args.outputs.primitives << {
+    x: 640, y: 30, size_px: 30, text: "Wave #{waves_state[:wave_index] + 1}",
+    alignment_enum: 1
+  }.label!
+  return if Waves.in_wave? waves_state
+
+  args.outputs.primitives << {
+    x: 640, y: 700, size_px: 40, text: 'Next wave in',
+    alignment_enum: 1
+  }.label!
+  args.outputs.primitives << {
+    x: 640, y: 660, size_px: 60, text: (waves_state[:timer] / 60).ceil.to_s,
+    alignment_enum: 1
+  }.label!
 end
 
 def render_game_over(args)
