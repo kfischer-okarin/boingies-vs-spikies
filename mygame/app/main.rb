@@ -9,6 +9,7 @@ require "app/turret.rb"
 require "app/essence.rb"
 require "app/enemies.rb"
 require "app/stage_editor.rb"
+require "app/waves.rb"
 
 def tick(args)
   setup(args) if args.tick_count.zero?
@@ -113,7 +114,7 @@ end
 def game_update(args)
   return if game_over?(args)
 
-  Enemies.spawn(args, Enemies::TYPES.keys.sample) if args.tick_count.mod_zero?(60)
+  Waves.tick(args)
   Enemies.update(args)
   Enemies.handle_enemy_vs_base_collisions(args)
   Enemies.handle_dead_ones(args)
