@@ -27,9 +27,9 @@ module Enemies
   }
 
   class << self
-    def spawn_spikey(args)
+    def spawn(args, enemy_type)
       spawn_zone = args.state.stage.spawn_zones.sample
-      enemy = TYPES.values.sample.merge(
+      enemy = TYPES[enemy_type].merge(
         x: spawn_zone.x + rand(spawn_zone.w).to_i,
         y: spawn_zone.y + rand(spawn_zone.h).to_i,
         anchor_x: 0.5, anchor_y: 0.5,

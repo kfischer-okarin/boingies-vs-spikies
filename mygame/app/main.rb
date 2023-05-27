@@ -113,7 +113,7 @@ end
 def game_update(args)
   return if game_over?(args)
 
-  Enemies.spawn_spikey(args) if args.tick_count.mod_zero?(60)
+  Enemies.spawn(args, Enemies::TYPES.keys.sample) if args.tick_count.mod_zero?(60)
   Enemies.update(args)
   Enemies.handle_enemy_vs_base_collisions(args)
   Enemies.handle_dead_ones(args)
