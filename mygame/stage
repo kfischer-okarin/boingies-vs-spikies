@@ -13,5 +13,10 @@
     {x: -240, y: -920, w: 510, h: 200},
     {x: 930, y: 230, w: 200, h: 550},
     {x: -570, y: 910, w: 550, h: 200}
+  ],
+  waves: [
+    { enemies: { spikey: 5 }, spawn_interval: 120 },
+    { enemies: { spikey: 10, spikey_ball: 5 }, spawn_interval: 120 },
+    { enemies: { spikey: 10, spikey_ball: 10, spikey_cube: 5 }, spawn_interval: 60 }
   ]
 }

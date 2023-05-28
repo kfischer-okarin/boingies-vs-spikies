@@ -9,6 +9,7 @@ require "app/turret.rb"
 require "app/essence.rb"
 require "app/enemies.rb"
 require "app/stage_editor.rb"
+require "app/waves.rb"
 
 def tick(args)
   setup(args) if args.tick_count.zero?
@@ -40,6 +41,7 @@ def setup(args)
   args.state.launched_turrets = []
   args.state.stationary_turrets = []
   args.state.projectiles = []
+  args.state.waves_state = Waves.build_state args.state.stage
 
   args.state.dmg_popups = []
   args.state.essence_drops = []
@@ -113,15 +115,27 @@ end
 def game_update(args)
   return if game_over?(args)
 
-  Enemies.spawn_spikey(args) if args.tick_count.mod_zero?(60)
+  Waves.tick(args, args.state.waves_state)
   Enemies.update(args)
   Enemies.handle_enemy_vs_base_collisions(args)
   Enemies.handle_dead_ones(args)
+  handle_next_wave(args) if Waves.in_wave?(args.state.waves_state)
   Launcher.update(args)
   update_launched_turrets(args)
   tick_turret(args)
   DamageNumbers.update_all(args.state.dmg_popups)
   update_essence(args)
+end
+
+def handle_next_wave(args)
+  waves_state = args.state.waves_state
+  return unless Waves.no_more_enemies_in_this_wave?(waves_state) && args.state.enemies.empty?
+
+  if Waves.last_wave?(waves_state)
+    # Show win / go to next stage screen?
+  else
+    Waves.prepare_next_wave(waves_state)
+  end
 end
 
 def update_launched_turrets args
@@ -202,13 +216,17 @@ def game_render(args)
   render_enemies(args)
   render_turrets(args)
   render_launcher_ui(args) if args.state.launcher[:state] == :charging
-  render_game_over(args) if Base.dead?(args.state.base)
   render_debug_info(args) if args.state.show_debug_info
   DamageNumbers.render_all(args, args.state.dmg_popups)
   render_essence(args)
+  render_wave_info(args)
 
-  render_turret_debug(args) if args.state.show_debug_info
-  render_stage_bounds_colliders(args) if args.state.show_debug_info
+  if args.state.show_debug_info
+    render_turret_debug(args)
+    render_stage_bounds_colliders(args)
+  end
+
+  render_game_over(args) if Base.dead?(args.state.base)
 end
 
 def render_base(args)
@@ -253,14 +271,6 @@ def render_stage_border(args)
   ]
 end
 
-def render_stage_bounds_colliders(args)
-  camera = args.state.camera
-  args.outputs.primitives << collidable_stage_bounds(args).map { |turret|
-    Camera.transform! camera, turret.to_sprite(path: :pixel, r: 0, g: 200, b: 0)
-  }
-end
-
-
 def render_enemies(args)
   camera = args.state.camera
   args.outputs.primitives << args.state.enemies.map { |enemy|
@@ -283,28 +293,6 @@ def render_turrets(args)
   }
 end
 
-def render_turret_debug(args)
-  camera = args.state.camera
-  args.outputs.primitives << args.state.stationary_turrets.map { |turret|
-    Camera.transform! camera, setup_circle(turret, turret.range)
-  }
-
-  args.outputs.primitives << args.state.stationary_turrets.map { |turret|
-    Camera.transform! camera, setup_circle(turret, turret.fusion_range).merge(r:200, g: 0)
-  }
-
-  sight_lines = args.state.stationary_turrets.flat_map do |turret|
-    enemies_in_range = Turret.enemies_in_range(turret, args.state.enemies)
-    enemies_in_range.map do |enemy|
-      visible = Turret.can_see_enemy?(turret, enemy, args.state.stage)
-      color = { r: visible ? 255 : 0, g: 0, b: 0 }
-      line = Turret.line_of_sight(turret, enemy)
-      Camera.transform(camera, line).merge(color).line
-    end
-  end
-  args.outputs.primitives << sight_lines if sight_lines.size > 0
-end
-
 def render_launcher_ui(args)
   launcher = args.state.launcher
 
@@ -314,6 +302,24 @@ def render_launcher_ui(args)
     sprite = Launcher.direction_marker_sprite(args)
     args.outputs.primitives << sprite if sprite
   end
+end
+
+def render_wave_info(args)
+  waves_state = args.state.waves_state
+  args.outputs.primitives << {
+    x: 640, y: 30, size_px: 30, text: "Wave #{waves_state[:wave_index] + 1}",
+    alignment_enum: 1
+  }.label!
+  return if Waves.in_wave? waves_state
+
+  args.outputs.primitives << {
+    x: 640, y: 700, size_px: 40, text: 'Next wave in',
+    alignment_enum: 1
+  }.label!
+  args.outputs.primitives << {
+    x: 640, y: 660, size_px: 60, text: (waves_state[:timer] / 60).ceil.to_s,
+    alignment_enum: 1
+  }.label!
 end
 
 def render_game_over(args)
@@ -352,6 +358,35 @@ def render_debug_info(args)
     { x: 5, y: 715, text: "FPS: #{args.gtk.current_framerate.to_i}", r: 255, g: 255, b: 255 }.label!,
     { x: 5, y: 690, text: "Mouse: (#{mouse.x.round(2)}, #{mouse.y.round(2)})", r: 255, g: 255, b: 255 }.label!
   ]
+end
+
+def render_turret_debug(args)
+  camera = args.state.camera
+  args.outputs.primitives << args.state.stationary_turrets.map { |turret|
+    Camera.transform! camera, setup_circle(turret, turret.range)
+  }
+
+  args.outputs.primitives << args.state.stationary_turrets.map { |turret|
+    Camera.transform! camera, setup_circle(turret, turret.fusion_range).merge(r:200, g: 0)
+  }
+
+  sight_lines = args.state.stationary_turrets.flat_map do |turret|
+    enemies_in_range = Turret.enemies_in_range(turret, args.state.enemies)
+    enemies_in_range.map do |enemy|
+      visible = Turret.can_see_enemy?(turret, enemy, args.state.stage)
+      color = { r: visible ? 255 : 0, g: 0, b: 0 }
+      line = Turret.line_of_sight(turret, enemy)
+      Camera.transform(camera, line).merge(color).line
+    end
+  end
+  args.outputs.primitives << sight_lines if sight_lines.size > 0
+end
+
+def render_stage_bounds_colliders(args)
+  camera = args.state.camera
+  args.outputs.primitives << collidable_stage_bounds(args).map { |turret|
+    Camera.transform! camera, turret.to_sprite(path: :pixel, r: 0, g: 200, b: 0)
+  }
 end
 
 def mouse_in_world(args)
