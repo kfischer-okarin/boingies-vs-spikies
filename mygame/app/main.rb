@@ -281,11 +281,11 @@ end
 def render_turrets(args)
   camera = args.state.camera
   args.outputs.primitives << args.state.launched_turrets.map { |turret|
-    Camera.transform! camera, turret.to_sprite(path: "sprites/circle.png", r: 200, g: 200, b: 200)
+    Camera.transform! camera, turret.to_sprite(path: "sprites/slime.png", r: 200, g: 200, b: 200)
   }
 
   args.outputs.primitives << args.state.stationary_turrets.map { |turret|
-    Camera.transform! camera, turret.to_sprite(path: :pixel, r: 0, g: 0, b: 200)
+    Camera.transform! camera, turret.to_sprite(r: 255, g: 255, b: 255)
   }
 
   args.outputs.primitives << args.state.projectiles.map { |shot|

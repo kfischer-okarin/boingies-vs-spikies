@@ -66,7 +66,8 @@ def makeTurret x, y, cd, type
     type: type, # yet to be used but will be
     range: range,
     life_time: life_time,
-    fusion_range: 40
+    fusion_range: 40,
+    primitive_marker: :sprite
   }.merge!( send("turret_stats_#{type}"))
 end
 
@@ -76,7 +77,8 @@ def turret_stats_big_roller
     shotSpeed: 1,
     range: 300,
     maxCd: 300,
-    life_time: 600
+    life_time: 600,
+    path:"sprites/slimeTower1.png"
   }
 end
 
@@ -86,7 +88,8 @@ def turret_stats_pdc
     shotSpeed: 20,
     range: 500,
     maxCd: 8,
-    life_time: 20
+    life_time: 20,
+    path:"sprites/slimeTower1.png"
   }
 end
 
