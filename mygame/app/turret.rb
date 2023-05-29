@@ -78,7 +78,7 @@ def turret_stats_big_roller
     range: 300,
     maxCd: 300,
     life_time: 600,
-    path:"sprites/slimeTower1.png"
+    path:"sprites/slimeTowerSmall1.png"
   }
 end
 
@@ -89,7 +89,7 @@ def turret_stats_pdc
     range: 500,
     maxCd: 8,
     life_time: 20,
-    path:"sprites/slimeTower1.png"
+    path:"sprites/slimeTowerSmall.png"
   }
 end
 
@@ -240,3 +240,5 @@ def fuse_turret existing_turret, fusing_from
   existing_turret.maxCd *= 0.95
   existing_turret.life_time = existing_turret.range / existing_turret.shotSpeed
 end
+
+$gtk.reset_sprites
