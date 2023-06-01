@@ -50,6 +50,19 @@ def setup(args)
   args.state.enemy_unique_id = 0
   args.state.current_turret_type = 1
   DamageNumbers.setup(args)
+
+  foilageSprites = ["flowers.png", "flowers1.png", "rocks.png", "rocks1.png"]
+  args.state.foilage =[]
+  nFoilage = 50
+  nFoilage.times do |i|
+    stage = args.state.stage
+    # placement is hella dodgy halp
+    x = rand(stage_bounds(stage).w) #- stage_bounds(stage).x
+    y = rand(stage_bounds(stage).h) #- stage_bounds(stage).y
+    foily = foilageSprites[rand(foilageSprites.length)]
+    args.state.foilage << {x:x, y:y, w:200, h:200, path:"sprites/#{foily}"}
+  end
+
 end
 
 def load_stage
@@ -241,7 +254,7 @@ def render_base(args)
 end
 
 def render_stage(args)
-  args.outputs.background_color = [200, 200, 200]
+  args.outputs.background_color = [143,151,74]
   stage = args.state.stage
   camera = args.state.camera
   args.outputs.primitives << stage[:walls].map { |wall|
@@ -249,6 +262,10 @@ def render_stage(args)
   }
   render_spawn_zones(args)
   render_stage_border(args)
+
+  args.outputs.primitives << args.state.foilage.map { |foili|
+    Camera.transform! camera, foili.to_sprite( r: 255, g: 255, b: 255)
+  }
 end
 
 def render_spawn_zones(args)
