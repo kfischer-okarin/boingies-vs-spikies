@@ -255,18 +255,19 @@ def render_base(args)
 end
 
 def render_stage(args)
-  args.outputs.background_color = [143,151,74]
+  args.outputs.background_color = [155,173,183]
   stage = args.state.stage
   camera = args.state.camera
+  args.outputs.primitives << args.state.foilage.map { |foili|
+    Camera.transform! camera, foili.to_sprite( r: 255, g: 255, b: 255)
+  }
   args.outputs.primitives << stage[:walls].map { |wall|
     Camera.transform! camera, wall.to_sprite( r: 255, g: 255, b: 255)
   }
   render_spawn_zones(args)
   render_stage_border(args)
 
-  args.outputs.primitives << args.state.foilage.map { |foili|
-    Camera.transform! camera, foili.to_sprite( r: 255, g: 255, b: 255)
-  }
+  
 end
 
 def render_spawn_zones(args)
