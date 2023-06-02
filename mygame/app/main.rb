@@ -54,13 +54,14 @@ def setup(args)
   foilageSprites = ["flowers.png", "flowers1.png", "rocks.png", "rocks1.png"]
   args.state.foilage =[]
   nFoilage = 50
+  bounds = stage_bounds(args.state.stage)
+  foliage_w = 200
+  foliage_h = 200
   nFoilage.times do |i|
-    stage = args.state.stage
-    # placement is hella dodgy halp
-    x = rand(stage_bounds(stage).w) #- stage_bounds(stage).x
-    y = rand(stage_bounds(stage).h) #- stage_bounds(stage).y
+    x = bounds.left + rand(bounds.w - foliage_w)
+    y = bounds.bottom + rand(bounds.h - foliage_h)
     foily = foilageSprites[rand(foilageSprites.length)]
-    args.state.foilage << {x:x, y:y, w:200, h:200, path:"sprites/#{foily}"}
+    args.state.foilage << { x: x, y: y, w: foliage_w, h: foliage_h, path: "sprites/#{foily}" }
   end
 
 end
@@ -456,7 +457,7 @@ end
 
 
 def make_wallRts(args)
-  stage = args.state.stage 
+  stage = args.state.stage
   stage[:walls].map_with_index do |wall, i|
     make_9_slice(11,11, "sprites/slimeWall2.png", wall.w, wall.h, args, true, "wall#{i}")
     wall[:path] = "wall#{i}"
@@ -482,7 +483,7 @@ def make_9_slice(tile_w,tile_h, sprite_name, box_width, box_height, args, fill, 
 	br_corner = {x:r_x,y:0,w:tile_w,h:tile_h, path:sprite_name, source_x:s_r_x, source_y:0, source_w:tile_w,source_h:tile_h}
 	tl_corner = {x:0,y:t_y,w:tile_w,h:tile_h, path:sprite_name, source_x:0, source_y:r_y, source_w:tile_w,source_h:tile_h}
 	tr_corner = {x:r_x,y:t_y,w:tile_w,h:tile_h, path:sprite_name, source_x:s_r_x, source_y:r_y, source_w:tile_w,source_h:tile_h}
-	
+
 	#left and right mid pieces
 	n_h = (mid_h/tile_h.to_f).ceil
 	#top and bottom mid pieces
@@ -499,7 +500,7 @@ def make_9_slice(tile_w,tile_h, sprite_name, box_width, box_height, args, fill, 
 			end
 		end
 	end
-	
+
 	#place left and right mid pieces
 	n_h.times do |i|
 		ml = {x:0,y:(i+1)*tile_h,w:tile_w,h:tile_h, path:sprite_name, source_x:0, source_y:tile_h, source_w:tile_w,source_h:tile_h}
@@ -514,8 +515,8 @@ def make_9_slice(tile_w,tile_h, sprite_name, box_width, box_height, args, fill, 
 		mt = {x:(i+1)*tile_w,y:t_y,w:tile_w,h:tile_h, path:sprite_name, source_x:tile_w, source_y:r_y, source_w:tile_w,source_h:tile_h}
 		slice << mt
 	end
-	
-	#added last so cover overspill of any partial centre pieces 
+
+	#added last so cover overspill of any partial centre pieces
 	slice << bl_corner
 	slice << br_corner
 	slice << tl_corner
