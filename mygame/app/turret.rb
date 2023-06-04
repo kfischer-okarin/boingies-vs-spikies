@@ -66,7 +66,8 @@ def makeTurret x, y, cd, type
     type: type, # yet to be used but will be
     range: range,
     life_time: life_time,
-    fusion_range: 40
+    fusion_range: 40,
+    primitive_marker: :sprite
   }.merge!( send("turret_stats_#{type}"))
 end
 
@@ -76,7 +77,8 @@ def turret_stats_big_roller
     shotSpeed: 1,
     range: 300,
     maxCd: 300,
-    life_time: 600
+    life_time: 600,
+    path:"sprites/slimeTowerSmall1.png"
   }
 end
 
@@ -86,7 +88,8 @@ def turret_stats_pdc
     shotSpeed: 20,
     range: 500,
     maxCd: 8,
-    life_time: 20
+    life_time: 20,
+    path:"sprites/slimeTowerSmall.png"
   }
 end
 
@@ -174,10 +177,10 @@ def make_big_roller_projectile target, turret
     h: 50,
     speed: speed,
     #this will change so don't bother refactoring it XD cuz we will have sprites right??
-    path: :pixel,
-    r: 100,
-    b: 0,
-    g: 0,
+    path: "sprites/bigshot.png",
+    r: 255,   
+    b: 255,
+    g: 255,
     target_position: { x: tx, y: ty },
     dmg: turret.dmg,
     pen: 5,
@@ -195,14 +198,14 @@ def make_pdc_projectile target, turret
   {
     x: turret.x,
     y: turret.y,
-    w: 10,
-    h: 10,
+    w: 25,
+    h: 25,
     speed: turret.shotSpeed,
     #this will change so don't bother refactoring it XD cuz we will have sprites right??
-    path: :pixel,
-    r: 100,
-    b: 0,
-    g: 0,
+    path: "sprites/bigshotsmall.png",
+    r: 255,
+    b: 255,
+    g: 255,
     target_position: { x: tx, y: ty },
     dmg: turret.dmg,
     pen: 5,
@@ -237,3 +240,5 @@ def fuse_turret existing_turret, fusing_from
   existing_turret.maxCd *= 0.95
   existing_turret.life_time = existing_turret.range / existing_turret.shotSpeed
 end
+
+$gtk.reset_sprites

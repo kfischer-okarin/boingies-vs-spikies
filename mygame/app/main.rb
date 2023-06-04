@@ -33,6 +33,7 @@ def setup(args)
   args.state.show_debug_info = false
   args.state.scene = :game
   args.state.stage = load_stage
+  make_wallRts(args)
   args.state.navigation_grid = Pathfinding.build_navigation_grid(args.state.stage, spacing: 30, grid_type: Pathfinding::HexGrid)
   args.state.enemies = []
   args.state.base = Base.build args.state.stage
@@ -49,6 +50,20 @@ def setup(args)
   args.state.enemy_unique_id = 0
   args.state.current_turret_type = 1
   DamageNumbers.setup(args)
+
+  foilageSprites = ["flowers.png", "flowers1.png", "rocks.png", "rocks1.png"]
+  args.state.foilage =[]
+  nFoilage = 50
+  bounds = stage_bounds(args.state.stage)
+  foliage_w = 200
+  foliage_h = 200
+  nFoilage.times do |i|
+    x = bounds.left + rand(bounds.w - foliage_w)
+    y = bounds.bottom + rand(bounds.h - foliage_h)
+    foily = foilageSprites[rand(foilageSprites.length)]
+    args.state.foilage << { x: x, y: y, w: foliage_w, h: foliage_h, path: "sprites/#{foily}" }
+  end
+
 end
 
 def load_stage
@@ -240,13 +255,19 @@ def render_base(args)
 end
 
 def render_stage(args)
+  args.outputs.background_color = [155,173,183]
   stage = args.state.stage
   camera = args.state.camera
+  args.outputs.primitives << args.state.foilage.map { |foili|
+    Camera.transform! camera, foili.to_sprite( r: 255, g: 255, b: 255)
+  }
   args.outputs.primitives << stage[:walls].map { |wall|
-    Camera.transform! camera, wall.to_sprite(path: :pixel, r: 255, g: 0, b: 0)
+    Camera.transform! camera, wall.to_sprite( r: 255, g: 255, b: 255)
   }
   render_spawn_zones(args)
   render_stage_border(args)
+
+  
 end
 
 def render_spawn_zones(args)
@@ -281,15 +302,15 @@ end
 def render_turrets(args)
   camera = args.state.camera
   args.outputs.primitives << args.state.launched_turrets.map { |turret|
-    Camera.transform! camera, turret.to_sprite(path: "sprites/circle.png", r: 200, g: 200, b: 200)
+    Camera.transform! camera, turret.to_sprite(path: "sprites/slimeBall.png", r: 200, g: 200, b: 200)
   }
 
   args.outputs.primitives << args.state.stationary_turrets.map { |turret|
-    Camera.transform! camera, turret.to_sprite(path: :pixel, r: 0, g: 0, b: 200)
+    Camera.transform! camera, turret.to_sprite(r: 255, g: 255, b: 255)
   }
 
   args.outputs.primitives << args.state.projectiles.map { |shot|
-    Camera.transform! camera, shot.to_sprite(path: :pixel)
+    Camera.transform! camera, shot.to_sprite(a:255)
   }
 end
 
@@ -433,6 +454,74 @@ def bounce(bullet, other)
   bullet.angle = 180 - bullet.angle if bx + bullet.w <= other.x ||
   bx >= other.x+ other.w
   [bx,by]
+end
+
+
+def make_wallRts(args)
+  stage = args.state.stage
+  stage[:walls].map_with_index do |wall, i|
+    make_9_slice(11,11, "sprites/slimeWall2.png", wall.w, wall.h, args, true, "wall#{i}")
+    wall[:path] = "wall#{i}"
+  end
+end
+
+
+def make_9_slice(tile_w,tile_h, sprite_name, box_width, box_height, args, fill, symbol)
+	mid_w = box_width-(tile_w*2)
+	mid_h = box_height-(tile_h*2)
+	args.outputs[symbol]
+	slice=args.outputs[symbol].sprites
+	args.outputs[symbol].w = box_width
+	args.outputs[symbol].h = box_height
+	#setup source positions for edge sprites
+	s_r_x = tile_w*2
+	r_y = tile_h*2
+	#set final locations for right and top edges
+	r_x = box_width-tile_w
+	t_y = box_height-tile_h
+
+	bl_corner = {x:0,y:0,w:tile_w,h:tile_h, path:sprite_name, source_x:0, source_y:0, source_w:tile_w,source_h:tile_h}
+	br_corner = {x:r_x,y:0,w:tile_w,h:tile_h, path:sprite_name, source_x:s_r_x, source_y:0, source_w:tile_w,source_h:tile_h}
+	tl_corner = {x:0,y:t_y,w:tile_w,h:tile_h, path:sprite_name, source_x:0, source_y:r_y, source_w:tile_w,source_h:tile_h}
+	tr_corner = {x:r_x,y:t_y,w:tile_w,h:tile_h, path:sprite_name, source_x:s_r_x, source_y:r_y, source_w:tile_w,source_h:tile_h}
+
+	#left and right mid pieces
+	n_h = (mid_h/tile_h.to_f).ceil
+	#top and bottom mid pieces
+	n_w = (mid_w/tile_w.to_f).ceil
+	#to fill or not fill the center
+  if(fill)
+		n_h.times do |y|
+			n_w.times do |x|
+
+				if((y>-1 && y<n_h) && (x>-1 && x<n_w))
+					mb = {x:(x+1)*tile_w,y:(y+1)*tile_h,w:tile_w,h:tile_h, path:sprite_name, source_x:tile_w, source_y:tile_h, source_w:tile_w,source_h:tile_h}
+					slice << mb
+				end
+			end
+		end
+	end
+
+	#place left and right mid pieces
+	n_h.times do |i|
+		ml = {x:0,y:(i+1)*tile_h,w:tile_w,h:tile_h, path:sprite_name, source_x:0, source_y:tile_h, source_w:tile_w,source_h:tile_h}
+		slice << ml
+		mr = {x:r_x,y:(i+1)*tile_h,w:tile_w,h:tile_h, path:sprite_name, source_x:s_r_x, source_y:tile_h, source_w:tile_w,source_h:tile_h}
+		slice << mr
+	end
+	#place top and bottom mid pieces
+	n_w.times do |i|
+		mb = {x:(i+1)*tile_w,y:0,w:tile_w,h:tile_h, path:sprite_name, source_x:tile_w, source_y:0, source_w:tile_w,source_h:tile_h}
+		slice << mb
+		mt = {x:(i+1)*tile_w,y:t_y,w:tile_w,h:tile_h, path:sprite_name, source_x:tile_w, source_y:r_y, source_w:tile_w,source_h:tile_h}
+		slice << mt
+	end
+
+	#added last so cover overspill of any partial centre pieces
+	slice << bl_corner
+	slice << br_corner
+	slice << tl_corner
+	slice << tr_corner
 end
 
 $gtk.reset

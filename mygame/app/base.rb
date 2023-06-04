@@ -14,10 +14,13 @@ module Base
 
     def sprite(base)
       base.to_sprite(
-        path: :pixel,
-        r: base.health.remap(0, 100, 255, 0),
-        g: base.health.remap(0, 100, 0, 255),
-        b: 40
+        path: "sprites/slimeKing.png",
+        r:255,
+        b:255,
+        g:255
+        #r: base.health.remap(0, 100, 255, 0),
+        #g: base.health.remap(0, 100, 0, 255),
+        #b: 40
       )
     end
 

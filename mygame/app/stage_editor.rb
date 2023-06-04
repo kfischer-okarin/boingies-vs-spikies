@@ -172,6 +172,8 @@ module StageEditor
       args.state.stage[:walls] << new_wall
       select_object args, :wall, new_wall
       clamp_to_stage(args, new_wall)
+
+      make_wallRts(args)
     end
 
     def handle_new_spawn_zone(args)
