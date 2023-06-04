@@ -24,14 +24,14 @@ module Base
       )
     end
 
-    def health_label(base)
-      {
-        text: base.health,
-        x: base[:x], y: base[:y] + 140,
-        size_px: 40,
-        alignment_enum: 1,
-        r: 0, g: 0, b: 0
-      }
+    def health_bar_sprites(base)
+      bar_total_width = 200
+      max_health = 100
+      bar_rect = { x: base[:x] - (bar_total_width / 2), y: base[:y] + 60, w: bar_total_width, h: 30 }
+      [
+        bar_rect.to_sprite(r: 150, g: 0, b: 0, path: :pixel),
+        bar_rect.to_sprite(w: (base.health / max_health.to_f) * bar_total_width, r: 0, g: 150, b: 0, path: :pixel)
+      ]
     end
   end
 end

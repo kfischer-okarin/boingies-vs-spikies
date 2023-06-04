@@ -248,11 +248,10 @@ end
 def render_base(args)
   camera = args.state.camera
   base = args.state.base
-  args.outputs.primitives << [
-    Camera.transform!(camera, Base.sprite(base)),
-    Camera.transform!(camera, Base.health_label(base)),
-  ]
-
+  args.outputs.primitives << Camera.transform!(camera, Base.sprite(base))
+  Base.health_bar_sprites(base).each do |sprite|
+    args.outputs.primitives << Camera.transform!(camera, sprite)
+  end
 end
 
 def render_stage(args)
