@@ -64,6 +64,7 @@ def setup(args)
     args.state.foilage << { x: x, y: y, w: foliage_w, h: foliage_h, path: "sprites/#{foily}" }
   end
 
+  args.audio[:bgm] = { input: 'audio/bgm.ogg', looping: true }
 end
 
 def load_stage
@@ -267,7 +268,7 @@ def render_stage(args)
   render_spawn_zones(args)
   render_stage_border(args)
 
-  
+
 end
 
 def render_spawn_zones(args)
