@@ -30,6 +30,7 @@ def game_tick(args)
 end
 
 def setup(args)
+  args.state.enemy_scaling = 1
   args.state.show_debug_info = false
   args.state.scene = :game
   args.state.stage = load_stage
@@ -125,6 +126,9 @@ def handle_next_wave(args)
 
   if Waves.last_wave?(waves_state)
     # Show win / go to next stage screen?
+    #yes I know but we don't have other screens and I rather infinite vs designing many waves XD
+    args.state.enemy_scaling +=0.1
+    Waves.prepare_next_wave(waves_state)
   else
     Waves.prepare_next_wave(waves_state)
   end

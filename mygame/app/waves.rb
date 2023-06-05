@@ -53,7 +53,7 @@ module Waves
     end
 
     def start_wave(waves_state)
-      current_wave = waves_state[:waves][waves_state[:wave_index]]
+      current_wave = waves_state[:waves][waves_state[:wave_index]%waves_state[:waves].length]
 
       waves_state[:queued_enemies] = []
       current_wave[:enemies].each do |enemy, number|
