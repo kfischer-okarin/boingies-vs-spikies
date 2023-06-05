@@ -49,6 +49,7 @@ def setup(args)
   args.state.essence_held = 300
   args.state.enemy_unique_id = 0
   args.state.current_turret_type = 1
+  args.state.selected_turret_type = Turret.available_turret_types(args).first
   DamageNumbers.setup(args)
 
   foilageSprites = ["flowers.png", "flowers1.png", "rocks.png", "rocks1.png"]
@@ -89,17 +90,11 @@ def game_process_inputs(args)
 end
 
 def change_selected_turret(args)
-  k = args.inputs.keyboard
+  input_chars = args.inputs.text
 
-  if k.key_down.one
-    args.state.current_turret_type -=1
-    args.state.current_turret_type = 0 if args.state.current_turret_type < 0
-  end
-  #this should be more dynamic with the actual options avaliable, currently only got 2 functioning
-  #see build turret for what these mean
-  if k.key_down.two
-    args.state.current_turret_type +=1
-    args.state.current_turret_type = 1 if args.state.current_turret_type > 1
+  Turret.available_turret_types(args).each_with_index do |turret_type, index|
+    hotkey = (index + 1).to_s
+    args.state.selected_turret_type = turret_type if input_chars == [hotkey]
   end
 end
 
@@ -235,6 +230,7 @@ def game_render(args)
   render_debug_info(args) if args.state.show_debug_info
   DamageNumbers.render_all(args, args.state.dmg_popups)
   render_essence(args)
+  render_turret_selection_ui(args)
   render_wave_info(args)
 
   if args.state.show_debug_info
@@ -322,6 +318,24 @@ def render_launcher_ui(args)
   if Launcher.charging?(launcher)
     sprite = Launcher.direction_marker_sprite(args)
     args.outputs.primitives << sprite if sprite
+  end
+end
+
+def render_turret_selection_ui(args)
+  Turret.available_turret_types(args).each_with_index do |turret_type, i|
+    turret_definition = Turret.definition(turret_type)
+    rect = { x: 200 + i * 80, y: 40, w: 64, h: 64 }
+    args.outputs.primitives << rect.to_sprite(path: :pixel, r: 255, g: 255, b: 255, a: 100)
+    args.outputs.primitives << rect.to_sprite(path: "sprites/turret_#{turret_type}.png")
+    args.outputs.primitives << { x: rect.left, y: rect.top, text: (i + 1).to_s }.label!
+    args.outputs.primitives << {
+      x: rect.right - 5, y: rect.bottom + 20,
+      text: turret_definition[:cost].to_s, r: 200, g: 0, b: 0,
+      alignment_enum: 2
+    }.label!
+    if args.state.selected_turret_type == turret_type
+      args.outputs.primitives << fat_border(rect, line_width: 5, r: 255, g: 255, b: 0)
+    end
   end
 end
 

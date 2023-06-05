@@ -14,6 +14,25 @@ module Turret
     }
   ]
 
+  TYPES_NEW = {
+    pdc: {
+      cost: 50,
+      dmg: 2,
+      shotSpeed: 20,
+      range: 500,
+      maxCd: 8,
+      life_time: 20
+    },
+    big_roller: {
+      cost: 100,
+      dmg: 10,
+      shotSpeed: 1,
+      range: 300,
+      maxCd: 300,
+      life_time: 600
+    }
+  }
+
   class << self
     def enemies_in_range(turret, enemies, &block)
       enemies.each do |enemy|
@@ -46,6 +65,14 @@ module Turret
       end
 
       !obstructing_wall
+    end
+
+    def available_turret_types(args)
+      Turret::TYPES_NEW.keys
+    end
+
+    def definition(type)
+      Turret::TYPES_NEW[type]
     end
   end
 end
@@ -178,7 +205,7 @@ def make_big_roller_projectile target, turret
     speed: speed,
     #this will change so don't bother refactoring it XD cuz we will have sprites right??
     path: "sprites/bigshot.png",
-    r: 255,   
+    r: 255,
     b: 255,
     g: 255,
     target_position: { x: tx, y: ty },
