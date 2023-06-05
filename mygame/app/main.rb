@@ -343,6 +343,7 @@ def render_wave_info(args)
 end
 
 def render_game_over(args)
+  waves_state = args.state.waves_state
   args.outputs.primitives << [
     {
       x: 0, y: 0,
@@ -360,8 +361,16 @@ def render_game_over(args)
       r: 0, g: 0, b: 0
     }.to_label,
     {
-      text: "press R to restart",
+      text: "Waves Completed: #{waves_state[:wave_index]}",
       x: args.grid.w / 2, y: 250,
+      size_px: 50,
+      alignment_enum: 1,
+      vertical_alignment_enum: 1,
+      r: 0, g: 0, b: 0
+    }.to_label,
+    {
+      text: "press R to restart",
+      x: args.grid.w / 2, y: 200,
       size_px: 50,
       alignment_enum: 1,
       vertical_alignment_enum: 1,
