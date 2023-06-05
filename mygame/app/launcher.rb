@@ -38,9 +38,7 @@ module Launcher
         dx: launcher[:direction].x, dy: launcher[:direction].y,
         logical_x: base.x, logical_y: base.y,
         pow: launcher[:power] / 5,
-        type: Turret::TYPES[args.state.current_turret_type].name,
-        turret_type: turret_type,
-        cd: 60,
+        type: turret_type,
         angle: launcher[:angle]
       }
     end

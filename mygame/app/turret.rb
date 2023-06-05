@@ -74,50 +74,20 @@ module Turret
     def definition(type)
       Turret::TYPES_NEW[type]
     end
+
+    def build(type, x:, y:)
+      definition(type).to_sprite(
+        x: x,
+        y: y,
+        w: 100,
+        h: 100,
+        cd: 0,
+        type: type, # yet to be used but will be
+        fusion_range: 40,
+        path: "sprites/turret_#{type}.png"
+      )
+    end
   end
-end
-
-def makeTurret x, y, cd, type
-  range = 500
-  speed = 2
-  life_time = range / speed
-  {
-    x: x,
-    y: y,
-    w: 100,
-    h: 100,
-    cd: 0,
-    maxCd: cd,
-    dmg: 10,
-    shotSpeed: speed,
-    type: type, # yet to be used but will be
-    range: range,
-    life_time: life_time,
-    fusion_range: 40,
-    primitive_marker: :sprite
-  }.merge!( send("turret_stats_#{type}"))
-end
-
-def turret_stats_big_roller
-  {
-    dmg: 10,
-    shotSpeed: 1,
-    range: 300,
-    maxCd: 300,
-    life_time: 600,
-    path:"sprites/slimeTowerSmall1.png"
-  }
-end
-
-def turret_stats_pdc
-  {
-    dmg: 2,
-    shotSpeed: 20,
-    range: 500,
-    maxCd: 8,
-    life_time: 20,
-    path:"sprites/slimeTowerSmall.png"
-  }
 end
 
 def tick_turret args

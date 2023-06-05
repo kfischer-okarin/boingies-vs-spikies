@@ -165,15 +165,14 @@ def update_launched_turrets args
     lau.pow -= 0.1
     if lau.pow <= 0
       lau.pow = 0
-      #eh symbols for turrets?
-      potential_turret = makeTurret(lau.logical_x, lau.logical_y, lau.cd, lau.type)
+      potential_turret = Turret.build(lau.type, x: lau.logical_x, y: lau.logical_y)
       fusion = false
       args.state.stationary_turrets.each do |turret|
-        if potential_turret.type == turret.type && circle_col(potential_turret, turret) && fusion == false
-          fusion = true
-          fuse_turret(turret, potential_turret)
-          break;
-        end
+        next unless potential_turret.type == turret.type && circle_col(potential_turret, turret)
+
+        fusion = true
+        fuse_turret(turret, potential_turret)
+        break
       end
       if fusion == false
         args.state.stationary_turrets << potential_turret
