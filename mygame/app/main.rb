@@ -30,6 +30,7 @@ def game_tick(args)
 end
 
 def setup(args)
+  args.state.enemy_scaling = 1
   args.state.show_debug_info = false
   args.state.scene = :game
   args.state.stage = load_stage
@@ -125,6 +126,9 @@ def handle_next_wave(args)
 
   if Waves.last_wave?(waves_state)
     # Show win / go to next stage screen?
+    #yes I know but we don't have other screens and I rather infinite vs designing many waves XD
+    args.state.enemy_scaling +=0.1
+    Waves.prepare_next_wave(waves_state)
   else
     Waves.prepare_next_wave(waves_state)
   end
@@ -339,6 +343,7 @@ def render_wave_info(args)
 end
 
 def render_game_over(args)
+  waves_state = args.state.waves_state
   args.outputs.primitives << [
     {
       x: 0, y: 0,
@@ -356,8 +361,16 @@ def render_game_over(args)
       r: 0, g: 0, b: 0
     }.to_label,
     {
-      text: "press R to restart",
+      text: "Waves Completed: #{waves_state[:wave_index]}",
       x: args.grid.w / 2, y: 250,
+      size_px: 50,
+      alignment_enum: 1,
+      vertical_alignment_enum: 1,
+      r: 0, g: 0, b: 0
+    }.to_label,
+    {
+      text: "press R to restart",
+      x: args.grid.w / 2, y: 200,
       size_px: 50,
       alignment_enum: 1,
       vertical_alignment_enum: 1,

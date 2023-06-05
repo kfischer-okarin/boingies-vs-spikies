@@ -30,7 +30,7 @@ module Waves
     end
 
     def last_wave?(waves_state)
-      waves_state[:wave_index] == waves_state[:waves].length - 1
+      waves_state[:wave_index] % waves_state[:waves].length == 0
     end
 
     private
@@ -53,11 +53,13 @@ module Waves
     end
 
     def start_wave(waves_state)
-      current_wave = waves_state[:waves][waves_state[:wave_index]]
+      current_wave = waves_state[:waves][waves_state[:wave_index]%waves_state[:waves].length]
 
       waves_state[:queued_enemies] = []
+      extraEnemies = $args.state.enemy_scaling.floor()
+      puts extraEnemies
       current_wave[:enemies].each do |enemy, number|
-        waves_state[:queued_enemies] += [enemy] * number
+        waves_state[:queued_enemies] += [enemy] * (number + extraEnemies)
       end
       waves_state[:queued_enemies].shuffle!
 

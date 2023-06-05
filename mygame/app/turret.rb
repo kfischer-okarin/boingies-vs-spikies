@@ -2,7 +2,7 @@ module Turret
   TYPES = {
     pdc: {
       cost: 50,
-      dmg: 2,
+      dmg: 5,
       shotSpeed: 20,
       range: 500,
       maxCd: 8,
@@ -10,8 +10,8 @@ module Turret
     },
     big_roller: {
       cost: 100,
-      dmg: 10,
-      shotSpeed: 1,
+      dmg: 40,
+      shotSpeed: 4,
       range: 300,
       maxCd: 300,
       life_time: 600
