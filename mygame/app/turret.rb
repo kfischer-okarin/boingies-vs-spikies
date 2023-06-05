@@ -1,20 +1,5 @@
 module Turret
-  TYPES = [
-    {
-      name: :big_roller,
-      cost: 100
-    },
-    {
-      name: :pdc,
-      cost: 50
-    },
-    {
-      name: :stickers,
-      cost: 75
-    }
-  ]
-
-  TYPES_NEW = {
+  TYPES = {
     pdc: {
       cost: 50,
       dmg: 2,
@@ -68,11 +53,11 @@ module Turret
     end
 
     def available_turret_types(args)
-      Turret::TYPES_NEW.keys
+      Turret::TYPES.keys
     end
 
     def definition(type)
-      Turret::TYPES_NEW[type]
+      Turret::TYPES[type]
     end
 
     def build(type, x:, y:)
