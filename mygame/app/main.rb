@@ -304,8 +304,8 @@ end
 def render_turret_selection_ui(args)
   Turret.available_turret_types(args).each_with_index do |turret_type, i|
     turret_definition = Turret.definition(turret_type)
-    rect = { x: 200 + i * 80, y: 40, w: 64, h: 64 }
-    args.outputs.primitives << rect.to_sprite(path: :pixel, r: 255, g: 255, b: 255, a: 100)
+    rect = { x: 200 + i * 80, y: 20, w: 64, h: 64 }
+    args.outputs.primitives << rect.to_sprite(path: :pixel, r: 255, g: 255, b: 255, a: 200)
     args.outputs.primitives << rect.to_sprite(path: "sprites/turret_#{turret_type}.png")
     args.outputs.primitives << { x: rect.left, y: rect.top, text: (i + 1).to_s }.label!
     args.outputs.primitives << {
@@ -314,7 +314,7 @@ def render_turret_selection_ui(args)
       alignment_enum: 2
     }.label!
     if args.state.selected_turret_type == turret_type
-      args.outputs.primitives << fat_border(rect, line_width: 5, r: 255, g: 255, b: 0)
+      args.outputs.primitives << fat_border(rect, line_width: 5, r: 255, g: 150, b: 0)
     end
   end
 end
