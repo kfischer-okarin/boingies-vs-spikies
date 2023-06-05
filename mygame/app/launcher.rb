@@ -19,18 +19,34 @@ module Launcher
         launcher[:direction] = calculate_launcher_direction(args, m)
         launcher[:angle] = angle_from_vector(launcher[:direction])
         if m.click
-          # should extract this back to main?
-          turret = build_turret(args)
-          args.state.launched_turrets << turret
-          args.state.essence_held -= turret.cost
+          type = args.state.selected_turret_type
+          launched_turret = build_launched_turret(args, type)
+          args.state.launched_turrets << launched_turret
+          args.state.essence_held -= Turret.definition(type)[:cost]
           launcher[:state] = :idle
           launcher[:power] = 0
         end
       end
     end
 
+    def build_launched_turret(args, turret_type)
+      base = args.state.base
+      launcher = args.state.launcher
+      {
+        x: base.x, y: base.y,
+        w: 100, h: 100,
+        dx: launcher[:direction].x, dy: launcher[:direction].y,
+        logical_x: base.x, logical_y: base.y,
+        pow: launcher[:power] / 5,
+        type: Turret::TYPES[args.state.current_turret_type].name,
+        turret_type: turret_type,
+        cd: 60,
+        angle: launcher[:angle]
+      }
+    end
+
     def can_launch?(args)
-      args.state.essence_held >= Turret::TYPES[args.state.current_turret_type].cost
+      args.state.essence_held >= Turret.definition(args.state.selected_turret_type)[:cost]
     end
 
     def update(args)

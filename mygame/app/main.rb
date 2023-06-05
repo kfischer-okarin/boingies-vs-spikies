@@ -98,25 +98,6 @@ def change_selected_turret(args)
   end
 end
 
-def build_turret(args)
-  p = args.state.base
-  launcher = args.state.launcher
-  type = Turret::TYPES[args.state.current_turret_type].name
-  #puts angle = Math.atan2(launcher.direction.y- (p.y+p.h/2), launcher.direction.x - (p.x+p.w/2))
-  #CD should be based on turret type
-  {
-    x: p.x, y: p.y,
-    w: 100, h: 100,
-    dx: launcher[:direction].x, dy: launcher[:direction].y,
-    logical_x: p.x, logical_y: p.y,
-    pow: launcher[:power] / 5,
-    type: Turret::TYPES[args.state.current_turret_type].name,
-    cost: Turret::TYPES[args.state.current_turret_type].cost,
-    cd: 60,
-    angle: launcher[:angle]
-  }
-end
-
 def handle_toggle_debug_info(args)
   return unless args.inputs.keyboard.key_down.nine
 
