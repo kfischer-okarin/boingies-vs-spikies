@@ -10,7 +10,7 @@ module Turret
     },
     big_roller: {
       cost: 100,
-      dmg: 30,
+      dmg: 40,
       shotSpeed: 4,
       range: 300,
       maxCd: 300,
