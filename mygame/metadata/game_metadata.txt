@@ -1,0 +1,8 @@
+# Remove the pound sign and leading space for the properties below before publishing your game.
+devid=kfischer-okarin
+devtitle=The Boingy Essence Occultist Circle
+gameid=boingies-vs-spikies
+gametitle=Boingies vs. Spikies
+version=0.1
+icon=metadata/icon.png
+
