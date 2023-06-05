@@ -309,8 +309,9 @@ def render_turret_selection_ui(args)
     args.outputs.primitives << rect.to_sprite(path: "sprites/turret_#{turret_type}.png")
     args.outputs.primitives << { x: rect.left, y: rect.top, text: (i + 1).to_s }.label!
     args.outputs.primitives << {
-      x: rect.right - 5, y: rect.bottom + 20,
+      x: rect.right - 2, y: rect.bottom + 12,
       text: turret_definition[:cost].to_s, r: 200, g: 0, b: 0,
+      size_px: 15,
       alignment_enum: 2
     }.label!
     if args.state.selected_turret_type == turret_type
