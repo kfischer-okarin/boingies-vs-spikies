@@ -57,7 +57,6 @@ module Waves
 
       waves_state[:queued_enemies] = []
       extraEnemies = $args.state.enemy_scaling.floor()
-      puts extraEnemies
       current_wave[:enemies].each do |enemy, number|
         waves_state[:queued_enemies] += [enemy] * (number + extraEnemies)
       end
