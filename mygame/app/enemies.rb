@@ -36,6 +36,7 @@ module Enemies
         essence_amount: 10,
         unique_id: args.state.enemy_unique_id
       )
+      enemy.health *= args.state.enemy_scaling
 
       args.state.enemies << enemy
 

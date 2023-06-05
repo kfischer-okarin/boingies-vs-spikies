@@ -56,8 +56,9 @@ module Waves
       current_wave = waves_state[:waves][waves_state[:wave_index]%waves_state[:waves].length]
 
       waves_state[:queued_enemies] = []
+      extraEnemies = $args.state.enemy_scaling.floor()
       current_wave[:enemies].each do |enemy, number|
-        waves_state[:queued_enemies] += [enemy] * number
+        waves_state[:queued_enemies] += [enemy] * (number + extraEnemies)
       end
       waves_state[:queued_enemies].shuffle!
 
