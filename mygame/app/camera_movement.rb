@@ -1,8 +1,9 @@
 module CameraMovement
   class << self
-    def control_camera(mouse:, camera:, stage:)
-      move_camera_with_mouse(mouse, camera)
-      zoom_camera_with_mouse_wheel(mouse, camera)
+    def control_camera(inputs:, camera:, stage:)
+      move_camera_with_mouse(inputs.mouse, camera)
+      move_camera_with_keyboard(inputs.keyboard, camera)
+      zoom_camera_with_mouse_wheel(inputs.mouse, camera)
       keep_camera_in_stage_bounds(camera, stage)
     end
 
@@ -11,7 +12,7 @@ module CameraMovement
     def move_camera_with_mouse(mouse, camera)
       return unless mouse.has_focus
 
-      camera_move_area_x = 250
+      camera_move_area_x = 50
       camera_speed = 20
       if mouse.x <= camera_move_area_x
         camera_move_factor = (camera_move_area_x - mouse.x) / camera_move_area_x
@@ -21,13 +22,28 @@ module CameraMovement
         camera[:center_x] += (camera_speed * camera_move_factor) / camera.zoom
       end
 
-      camera_move_area_y = 125
+      camera_move_area_y = 25
       if mouse.y <= camera_move_area_y
         camera_move_factor = (camera_move_area_y - mouse.y) / camera_move_area_y
         camera[:center_y] -= (camera_speed * camera_move_factor) / camera.zoom
       elsif mouse.y >= 720 - camera_move_area_y
         camera_move_factor = ((mouse.y - (720 - camera_move_area_y))) / camera_move_area_y
         camera[:center_y] += (camera_speed * camera_move_factor) / camera.zoom
+      end
+    end
+
+    def move_camera_with_keyboard(keyboard, camera)
+      camera_speed = 20
+      if keyboard.key_held.left
+        camera[:center_x] -= camera_speed / camera.zoom
+      elsif keyboard.key_held.right
+        camera[:center_x] += camera_speed / camera.zoom
+      end
+
+      if keyboard.key_held.up
+        camera[:center_y] += camera_speed / camera.zoom
+      elsif keyboard.key_held.down
+        camera[:center_y] -= camera_speed / camera.zoom
       end
     end
 

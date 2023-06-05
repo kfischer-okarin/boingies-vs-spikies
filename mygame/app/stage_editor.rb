@@ -31,7 +31,7 @@ module StageEditor
 
     def process_inputs(args)
       CameraMovement.control_camera(
-        mouse: args.inputs.mouse,
+        inputs: args.inputs,
         camera: args.state.camera,
         stage: args.state.stage
       )
